@@ -137,7 +137,7 @@ dy=maxy-miny
 # max1=maxj
 dx9=dx/9
 dy9=dy/9
-print(minx,maxx,miny,maxy,dx,dy,dx/9,dy/9)
+# print(minx,maxx,miny,maxy,dx,dy,dx/9,dy/9)
 # print(imageR2.shape)
 # print(grid.shape)
 tabzoneh={}
@@ -294,9 +294,9 @@ for nrow,row in enumerate(sudoku_rows):
                 cv2.putText(imageR,str(restext),(mx,my), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
 
-                print(restext,x0,x1,y0,y1,nrow,nc)
-                print(mx,my)
-                print(boxes)
+                # print(restext,x0,x1,y0,y1,nrow,nc)
+                # print(mx,my)
+                # print(boxes)
              
                
                 recToDraw=False
@@ -381,13 +381,90 @@ for nrow,row in enumerate(sudoku_rows):
 #     width = x2 - x
 #     print(x,y,x2,y2)
 
-
+   
+def check_col(arr,num,col):
+    if  all([num != arr[i][col] for i in range(9)]):
+        return True
+    return False
     
+
+def check_row(arr,num,row):
+    if  all([num != arr[row][i] for i in range(9)]):
+        return True
+    return False
+
+
+def check_cell(arr,num,row,col):
+    sectopx = 3 * (row//3)
+    sectopy = 3 * (col//3)
+          
+    for i in range(sectopx, sectopx+3):
+        for j in range(sectopy, sectopy+3):
+            if arr[i][j] == num:
+                return True
+    return False
+
+
+def empty_loc(arr,l):
+    for i in range(9):
+        for j in range(9):
+            if arr[i][j] == 0:
+                l[0]=i
+                l[1]=j
+                return True              
+    return False
+
+#### Solving sudoku by back tracking############
+def solvesudoku(arr):
+    l=[0,0]
+
+    if not empty_loc(arr,l):
+        return True
+    
+    row = l[0]
+    col = l[1]
+                
+    for num in range(1,10):
+        if check_row(arr,num,row) and check_col(arr,num,col) and not check_cell(arr,num,row,col):
+            arr[row][col] = int(num) 
+            
+            if(solvesudoku(arr)):
+                return True
+ 
+            # failure, unmake & try again
+            arr[row][col] = 0
+                    
+    return False
+
+def overlay(arr,num,img,cx,cy):
+    no = -1
+    for i in range(9):
+        for j in range(9):
+            no += 1 
+            #cv2.putText(img,str(no), (int(cx[i][j]),int(cy[i][j])),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+            if num[no] == 0:
+                
+                cv2.putText(img,str(int(arr[j][i])), (int(cx[i][j]-4),int(cy[i][j])+8),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4)
+                
+    cv2.imshow("Sudoku",img)
+    cv2.waitKey(0)
+
+
+solvesudoku(tabresr)
+# if(solvesudoku(tabresr)):
+#     arr = board(grid)
+#     overlay(arr,num,warped1,cx,cy)
+
+# else:
+#     print("There is no solution")    
+# tabresrsolved= np.zeros((9,9), dtype=np.uint8)
     
 print(tabresr)
+# tabresrsolved=solvesudoku(tabresr)
+# print(tabresr)
 # print(tabzonev)
     
-cv2.imshow('imageR', imageR)
+# cv2.imshow('tabresr', tabresr)
 cv2.imshow('gray', gray)
 
 cv2.waitKey()
