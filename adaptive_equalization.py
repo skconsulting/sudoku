@@ -130,6 +130,34 @@ stepY = warped.shape[0] // 9
 # initialize a list to store the (x, y)-coordinates of each cell
 # location
 cellLocs = []
+ref = np.zeros((9, 9), dtype="int")
+ref[1,8]=6
+ref[1,7]=2
+ref[2,5]=2
+ref[2,6]=3
+ref[2,7]=9
+ref[3,1]=5
+ref[3,7]=3
+ref[4,4]=3
+ref[4,6]=9
+ref[4,7]=8
+ref[5,2]=1
+ref[5,5]=8
+ref[5,7]=7
+ref[5,8]=2
+ref[6,2]=8
+ref[6,5]=7
+ref[6,7]=6
+ref[7,1]=6
+ref[7,2]=5
+ref[7,5]=1
+ref[7,6]=7
+ref[7,8]=3
+ref[8,1]=1
+ref[8,2]=7
+ref[8,4]=2
+ref[8,7]=5
+
 # loop over the grid locations
 for y in range(0, 9):
 	# initialize the current list of cell locations
@@ -151,10 +179,10 @@ for y in range(0, 9):
         if digit is not None:
 			# resize the cell to 28x28 pixels and then prepare the
 			# cell for classification
-            roi = cv2.resize(digit, (128, 128))
+            roi = cv2.resize(digit, (64, 64))
             roi=255-roi
-            np.putmask(roi,roi > 128,255)
-            np.putmask(roi,roi < 129,0)
+            # np.putmask(roi,roi > 128,255)
+            # np.putmask(roi,roi < 129,0)
             roi1=roi.copy()
             # print(roi.shape)
             # print(np.unique(roi))
@@ -163,15 +191,11 @@ for y in range(0, 9):
             kernel = np.ones((4,4),np.uint8)
             roi = cv2.erode(roi,kernel,iterations = 1)
             boxes = pytesseract.image_to_boxes(roi,config='--psm 10 --oem 3 -c tessedit_char_whitelist=123456789')
+            # boxes1 = pytesseract.image_to_boxes(roi1,config='--psm 10 --oem 3 -c tessedit_char_whitelist=123456789')
             # roi = roi.astype("float") / 255.0
             boxes=boxes.split(' ')
-            if True:
-                print(boxes)
-                cv2.imshow("roi", roi)
-                cv2.imshow("roi1", roi1)
-                # cv2.imshow("Digit", roi)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+            # boxes1=boxes1.split(' ')
+
         # # print(boxes,boxes[0])
 
             try:
@@ -181,6 +205,14 @@ for y in range(0, 9):
                 restext=0
             if restext in [1,2,3,4,5,6,7,8,9]:
                 print(restext)
+                if restext !=ref[y,x]:
+                    print('boxes',boxes)
+
+                    cv2.imshow("roi", roi)
+                    cv2.imshow("roi1", roi1)
+                    # cv2.imshow("Digit", roi)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
             # roi = img_to_array(roi)
             roi = np.expand_dims(roi, axis=0)
 			# classify the digit and update the Sudoku board with the
