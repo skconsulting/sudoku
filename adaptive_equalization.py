@@ -17,6 +17,7 @@ finalwidth=600
 # load the input image from disk and convert it to grayscale
 print("[INFO] loading input image...")
 image = cv2.imread('s1.jpg')
+image = cv2.imread('s2.png')
 
 aspectratio=image.shape[0]/image.shape[1]
 newheight=int(finalwidth*aspectratio)
@@ -107,6 +108,11 @@ def extract_digit(cell, debug=False):
 	# if less than 3% of the mask is filled then we are looking at
 	# noise and can safely ignore the contour
     if percentFilled < 0.03:
+        # print(percentFilled)
+        # cv2.imshow("mask", mask)
+        # # cv2.imshow("Digit", roi)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         return None
 	# apply the mask to the thresholded cell
     digit = cv2.bitwise_and(thresh, thresh, mask=mask)
@@ -174,12 +180,45 @@ for y in range(0, 9):
         # crop the cell from the warped transform image and then
 		# extract the digit from the cell
         cell = warped[startY:endY, startX:endX]
+        cellc=cell.copy()
+        # print(np.mean(cellc))
+        (h, w) = cellc.shape
+        # np.putmask(cellc,cellc > 200,255)
+        np.putmask(cellc,cellc < np.mean(cellc),0)
+
+        percentFilled = np.count_nonzero(cellc) / float(w * h)
+        # percentFilled = np.count_nonzero(cellc)
+
+        # if (x==6 or x==8) and (y ==1):
+        #             # print('boxes',boxes)
+        #             print(percentFilled)
+        #             # print(percentFilled)
+        #             cv2.imshow("cell", cell)
+        #             cv2.imshow("cellc", cellc)
+        #             # cv2.imshow("Digit", roi)
+        #             cv2.waitKey(0)
+        #             cv2.destroyAllWindows()
+
+
+        if percentFilled <0.5:
+            cell=255-cell
+
+        # print(percentFilled)
+
+        # # print(percentFilled)
+        # cv2.imshow("cell", cell)
+        # # cv2.imshow("roi1", roi1)
+        # # cv2.imshow("Digit", roi)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         digit = extract_digit(cell, debug=False)
 		# verify that the digit is not empty
         if digit is not None:
+        # if True:
 			# resize the cell to 28x28 pixels and then prepare the
 			# cell for classification
             roi = cv2.resize(digit, (64, 64))
+
             roi=255-roi
             # np.putmask(roi,roi > 128,255)
             # np.putmask(roi,roi < 129,0)
@@ -194,6 +233,16 @@ for y in range(0, 9):
             # boxes1 = pytesseract.image_to_boxes(roi1,config='--psm 10 --oem 3 -c tessedit_char_whitelist=123456789')
             # roi = roi.astype("float") / 255.0
             boxes=boxes.split(' ')
+
+            # if (x==6 or x==8) and (y ==1):
+            #             print('boxes',boxes)
+            #             # print(percentFilled)
+            #             cv2.imshow("roi", roi)
+            #             cv2.imshow("roi1", roi1)
+            #             # cv2.imshow("Digit", roi)
+            #             cv2.waitKey(0)
+            #             cv2.destroyAllWindows()
+                # if restext !=ref[y,x]:
             # boxes1=boxes1.split(' ')
 
         # # print(boxes,boxes[0])
@@ -203,16 +252,31 @@ for y in range(0, 9):
             except:
                 # print(boxes)
                 restext=0
-            if restext in [1,2,3,4,5,6,7,8,9]:
-                print(restext)
-                if restext !=ref[y,x]:
-                    print('boxes',boxes)
 
-                    cv2.imshow("roi", roi)
-                    cv2.imshow("roi1", roi1)
-                    # cv2.imshow("Digit", roi)
-                    cv2.waitKey(0)
-                    cv2.destroyAllWindows()
+            if restext in [1,2,3,4,5,6,7,8,9]:
+                # print(percentFilled)
+                # print(restext)
+                if False:
+
+                        print('boxes',boxes)
+                        print(x,y)
+                        (h, w) = roi.shape
+
+                        percentFilled = cv2.countNonZero(roi) / float(w * h)
+                        print(percentFilled)
+                        cv2.imshow("roi", roi)
+                        cv2.imshow("roi1", roi1)
+                        # cv2.imshow("Digit", roi)
+                        cv2.waitKey(0)
+                        cv2.destroyAllWindows()
+                # if restext !=ref[y,x]:
+
+
+                        cv2.imshow("roi", roi)
+                        cv2.imshow("roi1", roi1)
+                        # cv2.imshow("Digit", roi)
+                        cv2.waitKey(0)
+                        cv2.destroyAllWindows()
             # roi = img_to_array(roi)
             roi = np.expand_dims(roi, axis=0)
 			# classify the digit and update the Sudoku board with the
