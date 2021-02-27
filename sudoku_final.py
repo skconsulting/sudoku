@@ -17,45 +17,27 @@ import cv2
 import pytesseract
 import os
 from appJar import gui
+import pickle
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 debug=True
 solve=False
+debugN=True
 
 finalwidth=600
 imageToLoad='sudoku1.jpg'
 
-
-# image = cv2.imread('s1.jpg')
-# image = cv2.imread('s2.png')
-# image = cv2.imread('s1.jpg')
-# image = cv2.imread('sexpert.jpg')
-
+# imageToLoad='s1.jpg'
+# imageToLoad='s2.jpg'
+#imageToLoad='sexpert.jpg'
+# imageToLoad='s2.png'
 
 def rotate_image(image, angle):
   image_center = tuple(np.array(image.shape[1::-1]) / 2)
   rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
   result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
   return result
-
-# load the input image from disk and convert it to grayscale
-
-
-# gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-# gray = cv2.GaussianBlur(gray, (7, 7), 3)
-# image = cv2.adaptiveThreshold(gray, 255,
-#     		cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 57, 2)
-
-
-# image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-
-
-
-# cv2.imshow("image", image)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-# ooo
 
 def find_puzzle(image, debug=False):
 
@@ -158,12 +140,30 @@ def extract_digit(cell, debug=False):
     return digit
 
 def click_and_crop(event, x, y, flags, param):
-    global quitl,pattern,dirpath_patient
+    global quitl,lookforList,tabentert,redraw,plus
 
     if event == cv2.EVENT_LBUTTONDOWN:
         # cv2.rectangle(menus, (150,12), (370,32), black, -1)
         # posrc=0
-        print (x,y)
+        # print (x,y)
+        px,py =lookForPxPy(x,y)
+        # print(px,py,tabresrinit[px,py])
+        if lookForList:
+            listp=lookForPossible(px,py)
+            print(px,py,tabresrinit[px,py],listp)
+        if plus:
+            num=int(input("Please enter a number:\n"))
+            # print(num)
+            if check_row(tabentert,num,px) and check_col(tabentert,num,py) and not check_cell(tabentert,num,py,px):
+                tabentert[px,py]=num
+                redraw=True
+                # imagel=lfp(imagel)
+            else:
+                print('value not possible')
+            plus=False
+                
+            
+            
 #         for key1 in classif:
 #             labelfound=False
 #             xr=5
@@ -263,14 +263,34 @@ def click_and_crop(event, x, y, flags, param):
 #                 cv2.rectangle(menus, (212,0), (340,12), black, -1)
 #                 cv2.putText(menus,'No pattern selected',(215,10),cv2.FONT_HERSHEY_PLAIN,0.7,white,1 )
 
-
+def lfp():
+    col=(220,128,64)
+    grid = np.zeros(image.shape, dtype=np.uint8)
+    # print( 'list all')
+    for x in range(0,9):
+       for y in range(0,9):
+           if tabentert[x,y]==0:
+               listp=lookForPossible(x,y)
+               grid+=affichList(x,y,listp,col)
+    return grid
+        # delall()
+    
 def loop(ggdinit):
-    global quitl
+    global quitl,lookForList,plus,imagel,tabentert,redraw
     quitl=False
+    lookForList=False
+    plus=False
+    moins=False
+    redraw=False
    
     image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+    
+    
+    imagel=np.ones(image.shape,np.uint8)
+    height, width = image.shape[:2]
 
     cv2.namedWindow('image',cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('image', width, height)
     # cv2.namedWindow("Slider2",cv2.WINDOW_NORMAL)
 
     # cv2.createTrackbar( 'Brightness','Slider2',0,100,nothing)
@@ -280,8 +300,17 @@ def loop(ggdinit):
     # cv2.createTrackbar( 'Panx','Slider2',50,100,nothing)
     # cv2.createTrackbar( 'Pany','Slider2',50,100,nothing)
     cv2.setMouseCallback("image", click_and_crop)
+    tabentertimg=affinit(tabentert,(125,201,10))
+    imagel=lfp()
 
     while True:
+        if redraw:
+            print('I redraw')
+            tabentertimg=affinit(tabentert,(125,201,10))
+            imagel=lfp()
+            redraw=False
+        
+      # imageSolve= cv2.cvtColor(tabentertimg,cv2.COLOR_BqGR2RGB)
 
         key = cv2.waitKey(100) & 0xFF
         if key != 255:
@@ -296,16 +325,42 @@ def loop(ggdinit):
                 # suppress()
 
         elif key == ord("l"):
-                print ('delete last polygon')
-                # dellast()
+                print ('list possible')
+                
+                if lookForList:
+                    print('No more look for possible')
+                    lookForList=False
+                else:
+                    print('look for possible')
+                    lookForList=True
 
         elif key == ord("a"):
                 print( 'delete all')
                 # delall()
+        elif key == ord("L"):
+            print('all possible')
+            # imagel=lfp(imagel)
+            redraw=True
+            # col=(220,128,64)
+            # print( 'list all')
+            # for x in range(0,9):
+            #    for y in range(0,9):
+            #        if tabentert[x,y]==0:
+            #            listp=lookForPossible(x,y)
+            #            imagel=affichList(x,y,listp,col,imagel)
+                # delall()
+
 
         elif key == ord("r"):
                 print ('reset')
                 # reseted()
+                
+        elif key == ord("+"):
+                print ('plus')
+                plus=True
+              
+                # reseted()
+
 
         elif key == ord("v"):
                 print ('visualize')
@@ -345,9 +400,11 @@ def loop(ggdinit):
 #         imageview=cv2.add(imageview,menus)
 #         for key1 in classif:
 #                 tabroifinalview=zoomfunction(tabroifinal[key1][scannumber],z,px,py)
-#                 imageview=cv2.add(imageview,tabroifinalview)
+        imageview=cv2.add(image,imagel)
+
+        imageview=cv2.add(imageview,tabentertimg)
 #         imageview=cv2.cvtColor(imageview,cv2.COLOR_BGR2RGB)
-        cv2.imshow("image", image)
+        cv2.imshow("image", imageview)
         
         
 def overlay(arr,num,img,cx,cy):
@@ -417,6 +474,26 @@ def solvesudoku(arr):
                     
     return False
 
+def affichList(x,y,listp_,col):
+    grid = np.zeros(image.shape, dtype=np.uint8)
+    r=col[0]
+    g=col[1]
+    b=col[2]
+   
+    x0=int(cellLocs[x][y][0])
+    x1=int(cellLocs[x][y][2])
+    y0=int(cellLocs[x][y][1])
+    y1=int(cellLocs[x][y][3])
+    for i in listp_:
+        px=x0+int((x1-x0)/3)*((i-1)%3)+6
+        py=y0+int((y1-y0)/3)*((i-1)//3)+15
+        # pri+nt(i,px,py)
+        cv2.putText(grid, str(i),(px,py), font, 0.5, (r, g, b), 1, cv2.LINE_AA)
+     
+    return grid
+
+
+    
 
 def aff(tabref,tabaf,col):
     grid = np.zeros(image.shape, dtype=np.uint8)
@@ -449,12 +526,20 @@ def affinit(tabref,col):
     r=col[0]
     g=col[1]
     b=col[2]
+    XX=[]
     for y in range(0,9):
        for x in range(0,9):
             x0=int(cellLocs[x][y][0])
             x1=int(cellLocs[x][y][2])
             y0=int(cellLocs[x][y][1])
             y1=int(cellLocs[x][y][3])
+            if x%3==0 and y%3==0 :
+                x00=x0
+                x11=int(cellLocs[x][y+2][2])
+           
+                y00=y0
+                y11=int(cellLocs[x+2][y][3])
+                XX.append((x00,x11,y00,y11))
             # print(x0,x1,y0,y1)
             
             px =int((x0+x1)/2)
@@ -462,9 +547,47 @@ def affinit(tabref,col):
             
             if  tabref[x,y] != 0 :
                     cv2.putText(grid, str(tabref[x,y]),(px,py), font, 0.5, (b, g, r), 1, cv2.LINE_AA)
+            grid=cv2.rectangle(grid, (x1,y1), (x0,y0), (80,80,80), 1)
+    for l  in XX:
+            x0=l[0]
+            y0=l[2]
+            x1=l[1]
+            y1=l[3]
             grid=cv2.rectangle(grid, (x1,y1), (x0,y0), (255,255,255), 2)
-    return grid
+    # print(XX)
     
+    return grid
+
+def lookForPossible(xi,yi):
+    listpf=[]
+    for num in range(1,10):
+        if check_row(tabentert,num,xi) and check_col(tabentert,num,yi) and not check_cell(tabentert,num,xi,yi):
+             listpf.append(num)
+    return listpf
+
+
+def lookForPxPy(xi,yi):
+    px=0
+    py=0
+    for x in range(0,9):
+          x0=int(cellLocs[0][x][0])
+          x1=int(cellLocs[0][x][2])
+          if xi >=x0 and xi <=x1:
+              py=x
+              #print('good',px)
+              break
+
+    for y in range(0,9):
+        
+          y0=int(cellLocs[y][0][1])
+          y1=int(cellLocs[y][0][3])
+          # print(y,y0,y1,yi)
+          if yi >=y0 and yi <=y1:
+              px=y
+              # print('good',py)
+              break
+    #      # print(x0,x1,y0,y1)
+    return px,py
     
 def lookForFig():
     # loop over the grid locations
@@ -681,13 +804,20 @@ ref[8,3]=7
 ref[8,6]=1
 ref[8,7]=2
 
+if debugN:
+    (board,cellLocs) = pickle.load( open( "save.p", "rb" ) )
+else:
+    board,cellLocs=lookForFig()
+    pickle.dump( (board,cellLocs), open( "save.p", "wb" ) )
 
-board,cellLocs=lookForFig()
-print(board)
+
+# print(board)
 
 
 tabresrinit=board.copy()
+tabentert=board.copy()
 ggdinit=affinit(tabresrinit,(255,255,0))
+
 loop(ggdinit)
 
 if solve:
@@ -699,10 +829,12 @@ if solve:
         print("There is no solution")
 
 
-ggd=aff(tabresrinit,board,(255,255,0))
-
-cv2.imshow('ggdinit', ggdinit)
-cv2.imshow('gg_done', ggd)
-cv2.imshow('image', image)
-cv2.waitKey()
-cv2.destroyAllWindows()  
+# ggd=aff(tabresrinit,board,(255,255,0))
+# imageTosave=imageToLoad.split('.')[0]+'solved.jpg'
+# # print(imageTosave)
+# cv2.imwrite(imageTosave,ggd)
+# cv2.imshow('ggdinit', ggdinit)
+# cv2.imshow('gg_done', ggd)
+# cv2.imshow('image', image)
+# cv2.waitKey()
+# cv2.destroyAllWindows()  
