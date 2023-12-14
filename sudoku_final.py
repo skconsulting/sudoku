@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Feb 10 18:20:38 2021
+environment: my-env
 
 @author: sylvain
 """
 
 # USAGE
 # python adaptive_equalization.py --image images/boston.png
-
+# tablist list possible
 
 from imutils.perspective import four_point_transform
 from skimage.segmentation import clear_border
@@ -18,15 +19,26 @@ import pytesseract
 import os
 from appJar import gui
 import pickle
+import time
+from sudoku import Sudoku
+import random
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-debug=True
+debug=False
 solve=False
-debugN=True
+debugN=True # read images or not
+Radomseed=False
 
 finalwidth=600
 imageToLoad='sudoku1.jpg'
+imageToLoad='cam.jpg'
+
+
+CaseSelected = False
+pxSelected = -1
+pySelectedt = -1
+
 
 # imageToLoad='s1.jpg'
 # imageToLoad='s2.jpg'
@@ -34,12 +46,13 @@ imageToLoad='sudoku1.jpg'
 # imageToLoad='s2.png'
 
 def rotate_image(image, angle):
-  image_center = tuple(np.array(image.shape[1::-1]) / 2)
+  image_center = tuple(np.array(shapeRef[1::-1]) / 2)
   rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
-  result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+  result = cv2.warpAffine(image, rot_mat, shapeRef[1::-1], flags=cv2.INTER_LINEAR)
   return result
 
 def find_puzzle(image, debug=False):
+    print("[INFO] get puzzle")
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (7, 7), 3)
@@ -139,47 +152,68 @@ def extract_digit(cell, debug=False):
 	# return the digit to the calling function
     return digit
 
+def moinslundo(px,py,num):
+    global tablist,tabentert
+    listp=tablist[px,py]
+    listp.append(num)
+    tablist[px,py]=listp
+    #print('remove',num)
+    # imagel=lfp(imagel)
+
+
+
+def moinsl(px,py,num):
+    global tablist,tabentert
+    if tabentert[px,py]==num:
+        tabentert[px,py]=0
+    else:
+        listp=tablist[px,py]
+        if num in listp:
+            listp.remove(num)
+            tablist[px,py]=listp
+            #print('remove',num)
+            # imagel=lfp(imagel)
+        else:
+            print('value ' ,value,' not in list')
+                
+def plusl(px,py,num):
+    global tabentert
+    if check_row(tabentert,num,px) and check_col(tabentert,num,py) and not check_cell(tabentert,num,px,py):
+        tabentert[px,py]=num
+        #print('add',num)
+    else:
+        # print('value ' ,num,' impossible for row',check_row(tabentert,num,px) )
+        # print('value ' ,num,' impossible for col',check_col(tabentert,num,py) )
+        # print('value ' ,num ,' impossible for cell',not(check_cell(tabentert,num,px,py)) )
+        print('value ' ,num,' impossible')
+    
+def pluslmos(px,py,num,board):
+    if check_row(board,num,px) and check_col(board,num,py) and not check_cell(board,num,px,py):
+        board[px,py]=num
+        return board
+        #print('add',num)
+    else:
+        # print('value ' ,num,' impossible for row',check_row(tabentert,num,px) )
+        # print('value ' ,num,' impossible for col',check_col(tabentert,num,py) )
+        # print('value ' ,num ,' impossible for cell',not(check_cell(tabentert,num,px,py)) )
+        print('value ' ,num,' impossible for board')
 def click_and_crop(event, x, y, flags, param):
-    global quitl,lookforList,tabentert,redraw,plus
+    global quitl,lookforList,tabentert,plus,value,visu,gridVisu,tablist,ArraySelected,CaseSelected,moins,px,py,dbclick
 
     if event == cv2.EVENT_LBUTTONDOWN:
         # cv2.rectangle(menus, (150,12), (370,32), black, -1)
         # posrc=0
-        # print (x,y)
-        px,py =lookForPxPy(x,y)
-        # print(px,py,tabresrinit[px,py])
-        if lookForList:
-            listp=lookForPossible(px,py)
-            print(px,py,tabresrinit[px,py],listp)
-        if plus:
-            num=int(input("Please enter a number:\n"))
-            # print(num)
-            if check_row(tabentert,num,px) and check_col(tabentert,num,py) and not check_cell(tabentert,num,py,px):
-                tabentert[px,py]=num
-                redraw=True
-                # imagel=lfp(imagel)
-            else:
-                print('value not possible')
-            plus=False
-                
-            
-            
-#         for key1 in classif:
-#             labelfound=False
-#             xr=5
-#             yr=15*posrc
-#             xrn=xr+10
-#             yrn=yr+10
-#             if x>xr and x<xrn and y>yr and y< yrn:
+        #print ("x:",x,"y:",y)
+        px,py,ArraySelected,CaseSelected =lookForPxPy(x,y)
+        redraw()
+    if event == cv2.EVENT_LBUTTONDBLCLK:
+        # cv2.rectangle(menus, (150,12), (370,32), black, -1)
+        # posrc=0
+        #print ("x:",x,"y:",y)
+        #print('this is double click')
+        dbclick=True
+        doubleclick()
 
-#                 print ('this is',key1)
-#                 pattern=key1
-#                 cv2.rectangle(menus, (200,0), (210,10), classifc[pattern], -1)
-#                 cv2.rectangle(menus, (212,0), (340,12), black, -1)
-#                 cv2.putText(menus,key1,(215,10),cv2.FONT_HERSHEY_PLAIN,0.7,classifc[key1],1 )
-#                 labelfound=True
-#                 break
-#             posrc+=1
 
 #         if  x> zoneverticalgauche[0][0] and y > zoneverticalgauche[0][1] and x<zoneverticalgauche[1][0] and y<zoneverticalgauche[1][1]:
 #             print ( 'this is in menu')
@@ -265,31 +299,203 @@ def click_and_crop(event, x, y, flags, param):
 
 def lfp():
     col=(220,128,64)
-    grid = np.zeros(image.shape, dtype=np.uint8)
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    tablist={}
+    for x in range(0,9):
+       for y in range(0,9):
+           tablist[(x,y)]=()
     # print( 'list all')
     for x in range(0,9):
        for y in range(0,9):
            if tabentert[x,y]==0:
                listp=lookForPossible(x,y)
+               tablist[(x,y)]=listp
                grid+=affichList(x,y,listp,col)
+    return grid,tablist
+
+def lfplist():
+    col=(220,128,64)
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    # print( 'list all')
+   
+    for x in range(0,9):
+       for y in range(0,9):
+           listf=[]
+            
+           if (x,y) in tablist:
+               listp=tablist[(x,y)]
+               listp1=lookForPossible(x,y)
+               for u in listp: 
+                   if u in listp1:
+                       if tabentert[x,y]==0:
+                           listf.append(u)
+               tablist[(x,y)]=listf
+                   
+
+               grid+=affichList(x,y,listf,col)
     return grid
         # delall()
+        # delall()
+
+def rempliMenu()    :
+    global gridMenu
+    for i in range(10):
+     
+         cv2.rectangle(gridMenu, ((i*30)+5*i,0), ((i*30)+5*i+30,30), (100,100,100), -1)
+         cv2.putText(gridMenu,str((i+1)%10) ,((i*30)+5*i+5,15), cv2.FONT_HERSHEY_PLAIN,0.7,(240,200,180),1)
+    # cv2.rectangle(gridMenu, ((i*30)+5*i,50), ((i*30)+5*i+50,80), (100+i*10,256-(i*20),100), -1)
+    # cv2.putText(gridMenu,str(i+1) ,((i*30)+5*i+5,15), cv2.FONT_HERSHEY_PLAIN,0.7,(240,200,180),1)
     
-def loop(ggdinit):
-    global quitl,lookForList,plus,imagel,tabentert,redraw
+def redraw():
+        global showPossible,gridpair,tabentertimg,showPossible,image,gridVisu,ArraySelected,gridMenu,tabentert,tabresrinit,imagel,valueVisu,visuActive,toggleDou
+        global lastpx,lastpy
+       # print('I redraw')
+        griderror=np.zeros(shapeRef,np.uint8)
+        
+        resultSolved,_=solvesudokuNew(tabentert)
+        if not (resultSolved):
+            if lastpx>-1 and lastpy>-1:
+                griderror+=visui(lastpx,lastpy,(0,0,255))          
+     
+        # cv2.imshow("image", image)
+        # cv2.waitKey()
+        # cv2.destroyAllWindows()  
+        # print('board',board)
+        # print('tabentert',tabentert)
+        
+        tabentertimg=affinit(tabentert,(125,201,10))
+        imagel=lfplist()
+        # print(imagel.shape)
+        if showPossible:
+            imageview=cv2.add(image,imagel) ## image = source, imagel is possible
+        else:
+            imageview=image
+        visiuNum(valueVisu,visuActive)
+        togdou(toggleDou)
+        imageview=cv2.add(imageview,gridVisu) ## highlight only some number
+        imageview=cv2.add(imageview,griderror) ## highlight error
+        imageview=cv2.add(imageview,tabentertimg) ## with entered num
+        imageview=cv2.add(imageview,ArraySelected)## cell selected
+        imageview=cv2.add(imageview,gridpair)## pairs
+       
+
+#         imageview=cv2.cvtColor(imageview,cv2.COLOR_BGR2RGB)
+
+        finish=True
+        for x in range (0,9):
+            for y in range(0,9):
+                if tabentert[x][y]==0 and tabresrinit[x][y]==0:
+                    finish=False
+                    break
+        if finish:
+            print('FINISH')
+            cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
+            cv2.putText(gridMenu,'FINISH' ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+        imageview=np.concatenate((gridMenu,imageview),axis=0)
+        cv2.imshow("image", imageview)
+        
+def doubleclick():
+    global dbclick,CaseSelected,px,py,value
+    if dbclick:
+        if  CaseSelected:
+            listp=tablist[px,py]
+            if len(listp) ==1:
+                value= tablist[px,py][0]
+                print('I add', value)
+              #  plus=False
+                plusl(px,py,value)
+                value = -1
+                redraw()
+    dbclick=False
+        
+
+def drawselected(px,py):
+    ArraySelected =np.zeros( np.shape(image), dtype=np.uint8)
+    start_point = (cellLocs[px][py][0], cellLocs[px][py][1]) 
+    end_point = (cellLocs[px][py][2], cellLocs[px][py][3]) 
+    # print("start_point",start_point)
+    # print("end_point",end_point)
+    color=(255,255,0)
+    thickness=3
+    ArraySelected = cv2.rectangle(ArraySelected, start_point, end_point, color, thickness) 
+    return(ArraySelected)
+
+def visiuNum(valueVisu,toggleVisu):
+    global gridVisu,tabentert,tablist
+   # print('visu',valueVisu,toggleVisu)
+
+    gridVisu=np.zeros(shapeRef,np.uint8)
+    # print(tabentert)
+    # visu=False
+    if valueVisu>0 and toggleVisu:
+        for x in range (0,9):
+            for y in range(0,9):
+                if tabentert[x][y]==valueVisu:
+                    gridVisu+=visui(x,y,(150,150,150))
+                    # print('got',x,y)
+                if (x,y) in tablist:
+                    listp=tablist[(x,y)]
+                    if valueVisu in listp:
+                        gridVisu+=visui(x,y,(80,80,80))                        
+    #redraw()
+def  togdou(toggleDou):
+    global tablist,gridpair
+    gridpair=np.zeros(shapeRef,np.uint8)
+    if toggleDou:
+        for x in range (0,9):
+            for y in range(0,9):
+                    # print('got',x,y)
+                if (x,y) in tablist:
+                    listp=tablist[(x,y)]
+                    if len(listp)==2:
+                        gridpair+=visui(x,y,(80,80,80))          
+ 
+
+def loop(board):
+    global quitl,lookForList,plus,imagel,tabentert,value,tablist,moins,visu,gridVisu,gridMenu,ArraySelected,CaseSelected,px,py,gridpair,tabentertimg,showPossible
+    global image,tabresrinit,valueVisu,visuActive,toggleDou,lastpx,lastpy
+    ggdinit=affinit(board,(255,255,0))
     quitl=False
     lookForList=False
     plus=False
     moins=False
-    redraw=False
-   
+    visu=False
+    dou=False
+    mos=False
+    webcamV=False
+    toggleDou=False
+    showPossible=True
+    visuActive=False
+    value=-1
+    lastpx=-1
+    lastpy=-1
+    valueVisu=-1
+
     image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+    #oldshape=image.shape
+    #print(oldshape)
+    
+    aspectratio=image.shape[0]/image.shape[1]
+    newheight=int(finalwidth*aspectratio)
+
+    image=cv2.resize(image, (finalwidth, newheight))
+   
+    gridMenu=np.zeros((100,finalwidth,3),np.uint8)
+    rempliMenu()
+    # image=np.concatenate((image,gridMenu),axis=0)
+    #newshape=image.shape
+    #print("newshape",newshape)
+    gridVisu=np.zeros(shapeRef,np.uint8)
+    gridpair=np.zeros(shapeRef,np.uint8)
+    imagel=np.ones(shapeRef,np.uint8)
     
     
-    imagel=np.ones(image.shape,np.uint8)
+    
+    # imagehighlight=np.zeros(shapeRef,np.uint8)
     height, width = image.shape[:2]
 
-    cv2.namedWindow('image',cv2.WINDOW_NORMAL)
+    #cv2.namedWindow('image',cv2.WINDOW_NORMAL)
+    cv2.namedWindow('image',cv2.WINDOW_AUTOSIZE)
     cv2.resizeWindow('image', width, height)
     # cv2.namedWindow("Slider2",cv2.WINDOW_NORMAL)
 
@@ -301,46 +507,78 @@ def loop(ggdinit):
     # cv2.createTrackbar( 'Pany','Slider2',50,100,nothing)
     cv2.setMouseCallback("image", click_and_crop)
     tabentertimg=affinit(tabentert,(125,201,10))
-    imagel=lfp()
+    imagel,tablist=lfp()
+    redraw()
+    # print(tablist)
 
     while True:
-        if redraw:
-            print('I redraw')
-            tabentertimg=affinit(tabentert,(125,201,10))
-            imagel=lfp()
-            redraw=False
-        
-      # imageSolve= cv2.cvtColor(tabentertimg,cv2.COLOR_BqGR2RGB)
-
-        key = cv2.waitKey(100) & 0xFF
+   
+       # key = cv2.waitKey(100) & 0xFF
+        key = cv2.waitKeyEx(0)
         if key != 255:
-            print( key)
+            print( "I have typed",key)
+            #up 2490368
+            # down 2621440
+            # right 2555904
+            # left 2424832
+        if key == 2490368:
+            print('this is up')
+            if CaseSelected:
+                px = max(0,px-1)
+                ArraySelected=drawselected(px,py)
+                value = -1
+                redraw()
+        elif key == 2621440:
+             print('this is down')
+             if CaseSelected:
+                 px = min(8,px+1)
+                 ArraySelected=drawselected(px,py)
+                 value = -1
+                 redraw()
+        elif key == 2555904:
+             print('this is right')
+             if CaseSelected:
+                 py = min(8,py+1)
+                 ArraySelected=drawselected(px,py)
+                 value = -1
+                 redraw()
+        elif key == 2424832:
+             print('this is left')
+             if CaseSelected:
+                 py = max(0,py-1)
+                 ArraySelected=drawselected(px,py)
+                 value = -1
+                 redraw()
 
-        if key == ord("c"):
-                print ('completed')
-                # completed(imagename,dirpath_patient)
+        # if key == ord("c"):
+        #         print ('completed')
+        #         # completed(imagename,dirpath_patient)
 
-        elif key == ord("d"):
-                print ('delete entry')
-                # suppress()
+        # elif key == ord("d"):
+        #         print ('delete entry')
+        #         # suppress()
 
         elif key == ord("l"):
-                print ('list possible')
+                print ('reset list possible')
+                imagel,tablist=lfp()
+                redraw()
+                # visu=True
                 
-                if lookForList:
-                    print('No more look for possible')
-                    lookForList=False
-                else:
-                    print('look for possible')
-                    lookForList=True
+                # if lookForList:
+                #     print('No more look for possible')
+                #     lookForList=False
+                # else:
+                #     print('look for possible')
+                #     lookForList=True
 
-        elif key == ord("a"):
-                print( 'delete all')
-                # delall()
+        # elif key == ord("a"):
+        #         print( 'delete all')
+        #         # delall()
         elif key == ord("L"):
-            print('all possible')
+            print('toggle display all possible')
+            showPossible= not(showPossible)
             # imagel=lfp(imagel)
-            redraw=True
+            redraw()
             # col=(220,128,64)
             # print( 'list all')
             # for x in range(0,9):
@@ -351,30 +589,389 @@ def loop(ggdinit):
                 # delall()
 
 
-        elif key == ord("r"):
-                print ('reset')
-                # reseted()
+        # elif key == ord("r"):
+        #         print ('reset')
+        #         # reseted()
                 
         elif key == ord("+"):
                 print ('plus')
+                mos=False
+                value=-1
                 plus=True
+                visu=False
+                moins=False
+                dou=False
+                cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
+                cv2.putText(gridMenu,'+' ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                redraw()
+                
+        elif key == ord("-"):
+                print ('moins')
+                mos=False
+                value=-1
+                moins=True
+                plus=False
+                visu=False
+                dou=False
+                cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
+                cv2.putText(gridMenu,'-' ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                redraw()
+                
+        elif key == ord("v"):
+                value=-1
+                visu=True
+                visuActive = not(visuActive)
+                print ('visualize only some values',visuActive)
+                moins=False
+                plus=False
+                dou=False
+        
+        elif key == ord("d"):                     
+                dou=True
+                toggleDou = not(toggleDou)
+                print ('visualize double',toggleDou)
+                moins=False
+                plus=False
+                visu=False
+        
+        elif key == ord("m"):                     
+                 mos=True
+                 print ('modify source',toggleDou)
+                 moins=False
+                 plus=False
+                 visu=False
+                
+        elif key == ord("r"):                     
+             
+              print ('reset')
+              CaseSelected=False
+              tabentert=board.copy()
+              image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+              gridVisu=np.zeros(shapeRef,np.uint8)
+              gridpair=np.zeros(shapeRef,np.uint8)
+              imagel=np.ones(shapeRef,np.uint8)
+              imagel,tablist=lfp()
+              redraw()
+
+        elif key == ord("s"):
+                       print ('solve')
+                       CaseSelected=False
+                       showPossible=False
+                       start = time.time()
+                       resultSolved,solved=solvesudokuNew(board)
+                       #if(solvesudoku(board)):
+                       end = time.time()
+                       delta = end - start
+                       print ("took %.2f seconds to process" % delta)
+                       if resultSolved:
+                           solvedF=np.zeros((9, 9), dtype="int")
+                           for i in range(9):
+                              for j in range(9):
+                                  if solved[i,j]==board[i,j]:
+                                      solvedF[i,j]=0
+                                  else:
+                                      solvedF[i,j]=solved[i,j]
+                       else:
+                            print("NO SOLUTION")
+                            solvedF=board
+                             # print(solvedF[i,j])
+                                          
+                       #tabentert=board.copy()
+                       # tabresrinit=board.copy()
+                       # tabentert=board.copy()
+                       #sprint(board)
+                       ggdinit=aff(board,solvedF,(255,255,0))
+                       image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+                       gridVisu=np.zeros(shapeRef,np.uint8)
+                       gridpair=np.zeros(shapeRef,np.uint8)
+                       redraw()
+
+
+
+                
+        elif key == ord("1") or key == ord("2") or key == ord("3")  or key == ord("4") or \
+            key == ord("5") or key == ord("6") or key == ord("7") or key == ord("8") or key == ord("9") or key == ord("0"):
+                value=int(chr(key))
+                if visu:
+                    print ('visu', value)
+                if plus:
+                    print ('plus', value)
+                    lastpx=px
+                    lastpy=py
+                    tablistSaved= tablist.copy()
+                    cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
+                    cv2.putText(gridMenu,'+ '+': '+chr(key) ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                    moins=False
+                if moins:
+                    print ('moins', value)
+                    numsaved= value
+                    lastpx=px
+                    lastpy=py
+                    plus=False
+                    cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
+                    cv2.putText(gridMenu,'- '+': '+chr(key) ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                if mos:
+                    print ('add to source',value)
+                    
+        elif key == 26:
+                print('ctrl z)')
+                if lastpy>-1 and lastpx>-1:
+                    print('I undo',moins)
+                    if plus:
+                        tabentert[px,py]=0
+                        tablist=tablistSaved.copy()
+                    if moins:
+                        px=lastpx
+                        py=lastpy
+                        moinslundo(px,py,numsaved)
+                    value = -1
+                    lastpy=-1
+                    lastpx=-1
+                    redraw()
+                        
+
+                
+              
+                
               
                 # reseted()
-
-
-        elif key == ord("v"):
-                print ('visualize')
+      
+                
                 # visua()
-        elif key == ord("e"):
-                print ('erase')
-                # eraseroi(imagename,dirpath_patient)
-        elif key == ord("f"):
-                print ('close polygone')
-                # closepolygon()
-        elif key == ord("q")  or quitl or cv2.waitKey(20) & 0xFF == 27 :
+        # elif key == ord("e"):
+        #         print ('erase')
+        #         # eraseroi(imagename,dirpath_patient)
+        # elif key == ord("f"):
+        #         print ('close polygone')
+        #         # closepolygon()
+        elif key == ord("q") or key == ord("Q")  or quitl or cv2.waitKey(20) & 0xFF == 27 :
                print ('on quitte', quitl)
                cv2.destroyAllWindows()
                break
+        elif key == ord("C"):
+          tempo,tablisttempo=lfp()
+          only_col(tablisttempo)
+        #if visu and  value > -1:
+        elif key == ord("z"):
+            webcamV=True
+        
+            
+        if visu:
+            valueVisu=value
+            toggleDou=False
+            dou=False
+            value=-1
+            print('visu1',valueVisu,visuActive)
+            cv2.rectangle(gridMenu, (400,60), (550,90), (20,30,10), -1)
+            if visuActive:
+                cv2.putText(gridMenu,'visu '+': '+chr(key) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+            #visiuNum(value,visuActive)
+            
+            # print('visu',value)
+            # gridVisu=np.zeros(shapeRef,np.uint8)
+            # # print(tabentert)
+            # # visu=False
+            # if value>0:
+            #     for x in range (0,9):
+            #         for y in range(0,9):
+            #             if tabentert[x][y]==value:
+            #                 gridVisu+=visui(x,y,(150,150,150))
+            #                 # print('got',x,y)
+            #             if (x,y) in tablist:
+            #                 listp=tablist[(x,y)]
+            #                 if value in listp:
+            #                     gridVisu+=visui(x,y,(80,80,80))                        
+            redraw()
+            #visu=False
+        
+        if dou:
+                print('higlihts pair')
+                visuActive=False
+                # print(tabentert)
+                visu=False
+                cv2.rectangle(gridMenu, (400,60), (550,90), (20,30,10), -1)
+                togdou(toggleDou)
+                if toggleDou:
+                #     for x in range (0,9):
+                #         for y in range(0,9):
+                #                 # print('got',x,y)
+                #             if (x,y) in tablist:
+                #                 listp=tablist[(x,y)]
+                #                 if len(listp)==2:
+                #                     gridpair+=visui(x,y,(80,80,80))          
+
+                    cv2.putText(gridMenu,'double' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)          
+                redraw()
+                dou=False
+
+        if moins and value >0 and CaseSelected:
+          #  moins=False
+            moinsl(px,py,value)
+            value = -1
+            redraw()
+            
+        if plus and value >0 and CaseSelected:
+            #print('I add', value)
+          #  plus=False
+            plusl(px,py,value)
+            value = -1
+            redraw()
+            
+        if mos and value >0 and CaseSelected:
+             #print('I add', value)
+           #  plus=False
+             board=pluslmos(px,py,value,board)
+             value = -1
+             tabresrinit=board.copy()
+             ggdinit=affinit(tabresrinit,(255,255,0))
+             image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+             tabentert=board.copy()
+             imagel,tablist=lfp()
+             redraw()
+             
+        # if webcamV:
+        #     print('start webcam dummy')
+        #     board,cellLocs=loadimage('cam.jpg')
+        #     webcamV=False
+           
+        #     tabresrinit=board.copy()
+        #     ggdinit=affinit(tabresrinit,(255,255,0))
+        #     image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+        #     tabentert=board.copy()
+        #     imagel,tablist=lfp()
+        #     # # cv2.imshow("puzzleImage", puzzleImage)
+        #     # # cv2.imshow("warped", warped)
+        #     cv2.imshow("image", image)
+        #     cv2.setMouseCallback("image", click_and_crop)
+        #     # cv2.waitKey()
+        #     # cv2.destroyWindow("image")
+        #     redraw()
+        
+
+        # webcamV1=False     
+             
+                
+        if webcamV:
+            finl=True
+            print('start webcam')
+            webcamV=False
+            webcam = cv2.VideoCapture(0)
+
+        #try:
+    
+            while finl:
+                    check, frame = webcam.read()
+                    # print(check) #prints true as long as the webcam is running
+                    # print(frame) #prints matrix values of each framecd 
+                    #cv2.destroyWindow("image")
+                    cv2.imshow("Capturing", frame)
+                    key_ = cv2.waitKey(1)
+                    if key_ == ord('s'): 
+                        print(frame.shape)
+                        # cv2.imwrite(filename='saved_img.jpg', img=frame)
+                      
+                        # img_new = cv2.imread('saved_img.jpg', cv2.IMREAD_GRAYSCALE)
+                        # img_new = cv2.imshow("Captured Image", img_new)
+                        # cv2.waitKey(1650)
+                        # cv2.destroyAllWindows()
+                        # print("Processing image...")
+                        # img_ = cv2.imread('saved_img.jpg', cv2.IMREAD_ANYCOLOR)
+                        # print("Converting RGB image to grayscale...")
+                        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                        # print("Converted RGB image to grayscale...")
+                        # print("Resizing image to 28x28 scale...")
+                        img_ = cv2.resize(gray,(640,480))
+                        # print("Resized...")
+                        img_resized = cv2.imwrite(filename='cam.jpg', img=img_)
+                        print("Image saved!")
+       
+                        #image = cv2.imread('cam.jpg')
+                        cv2.imshow("Captured", img_)
+                        print('type "y" if correct')
+                        key_ = cv2.waitKey(0)
+
+                        
+                        if key_ == ord('y'): 
+                            webcam.release()
+                            board,cellLocs=loadimage('cam.jpg')
+                            cv2.destroyWindow("Capturing")
+                            cv2.destroyWindow("Captured")
+                        # ooo
+                        
+                        # # image =rotate_image(image,90)
+                        
+                        # aspectratio=image.shape[0]/image.shape[1]
+                        # newheight=int(finalwidth*aspectratio)
+                        
+                        # image=cv2.resize(image, (finalwidth, newheight))
+                        # # cv2.imshow("image", image)
+                        
+                        # (puzzleImage, warped) = find_puzzle(image, debug=False)
+                        
+                        # aspectratio=warped.shape[0]/warped.shape[1]
+                        # newheight=int(finalwidth*aspectratio)
+                        # warped=cv2.resize(warped, (finalwidth, newheight))
+                        # puzzleImage=cv2.resize(puzzleImage, (finalwidth, newheight))
+
+                        
+                        # # cv2.imshow("puzzleImage", puzzleImage)
+                        # # cv2.imshow("warped", warped)
+                        # # cv2.imshow("image", image)
+                        # # cv2.waitKey()
+                        # # cv2.destroyAllWindows()  
+                        
+
+                        
+                        # # initialize our 9x9 Sudoku board
+                        # board = np.zeros((9, 9), dtype="int")
+                        # # a Sudoku puzzle is a 9x9 grid (81 individual cells), so we can
+                        # # infer the location of each cell by dividing the warped image
+                        # # into a 9x9 grid
+                        # stepX = warped.shape[1] // 9
+                        # stepY = warped.shape[0] // 9
+                        # # initialize a list to store the (x, y)-coordinates of each cell
+                        # # location
+                        # cellLocs = []
+
+                        # board,cellLocs=lookForFig(stepX,stepY,puzzleImage)
+                            tabresrinit=board.copy()
+                            ggdinit=affinit(tabresrinit,(255,255,0))
+                            image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+                            tabentert=board.copy()
+                            imagel,tablist=lfp()
+                            # # cv2.imshow("puzzleImage", puzzleImage)
+                            # # cv2.imshow("warped", warped)
+                            cv2.imshow("image", image)
+                            cv2.setMouseCallback("image", click_and_crop)
+                            # cv2.waitKey()
+                            # cv2.destroyWindow("image")
+                            redraw()
+                            break
+                        else:
+                            cv2.destroyWindow("Captured")
+                            print('captured not good')
+                            finl=True
+                            #webcam = cv2.VideoCapture(0)
+
+
+
+                    elif key_ == ord('q'):
+                        webcam.release()
+                        print("Camera off.")
+                        cv2.destroyWindow("Capturing")
+                        #cv2.destroyAllWindows()
+                        break
+                    
+                #except(KeyboardInterrupt):
+                    # print("Turning off camera.")
+                    # webcam.release()
+                    # print("Camera off.")
+                    # print("Program ended.")
+                    # cv2.destroyAllWindows()
+                    # break
+                
+                
+                
 #         c = cv2.getTrackbarPos('Contrast','Slider2')
 #         l = cv2.getTrackbarPos('Brightness','Slider2')
 #         fl = cv2.getTrackbarPos('Flip','Slider2')
@@ -395,16 +992,13 @@ def loop(ggdinit):
 #         populate(dirpath_patient,slnt)
 #         imglumi=lumi(image,l)
 #         image=contrasti(imglumi,c)
-# #        print image.shape,images[scannumber].shape
+# #        print shapeRef,images[scannumber].shape
 #         imageview=cv2.add(image,imagesview)
 #         imageview=cv2.add(imageview,menus)
 #         for key1 in classif:
 #                 tabroifinalview=zoomfunction(tabroifinal[key1][scannumber],z,px,py)
-        imageview=cv2.add(image,imagel)
-
-        imageview=cv2.add(imageview,tabentertimg)
-#         imageview=cv2.cvtColor(imageview,cv2.COLOR_BGR2RGB)
-        cv2.imshow("image", imageview)
+        
+     
         
         
 def overlay(arr,num,img,cx,cy):
@@ -424,12 +1018,24 @@ def check_col(arr,num,col):
     if  all([num != arr[i][col] for i in range(9)]):
         return True
     return False
-    
+
+def only_col(arr):
+    for j in range(9):
+        for i in range(9):
+            if len(arr[j,i])==1:
+                print('unique at row',j,' column:',i,arr[j,i])
+
 
 def check_row(arr,num,row):
     if  all([num != arr[row][i] for i in range(9)]):
         return True
     return False
+
+# def only_row(arr,num,row):
+#     if  all([num != arr[row][i] for i in range(9)]):
+#         return True
+#     return False
+
 
 
 def check_cell(arr,num,row,col):
@@ -453,6 +1059,19 @@ def empty_loc(arr,l):
     return False
 
 #### Solving sudoku by back tracking############
+def solvesudokuNew(arr):
+    try:
+        puzzle=convertBoard(arr)
+        puzzle = Sudoku(3, 3, board=puzzle)
+        solution = puzzle.solve(raising=True)
+        solution=convertBoardInv(solution.board)
+        return True, solution
+    except:
+        print ('*****************')
+        print ('ERROR No solution')
+        print ('*****************')
+        return False, arr
+    
 def solvesudoku(arr):
     l=[0,0]
 
@@ -461,6 +1080,7 @@ def solvesudoku(arr):
     
     row = l[0]
     col = l[1]
+
                 
     for num in range(1,10):
         if check_row(arr,num,row) and check_col(arr,num,col) and not check_cell(arr,num,row,col):
@@ -475,7 +1095,7 @@ def solvesudoku(arr):
     return False
 
 def affichList(x,y,listp_,col):
-    grid = np.zeros(image.shape, dtype=np.uint8)
+    grid = np.zeros(shapeRef, dtype=np.uint8)
     r=col[0]
     g=col[1]
     b=col[2]
@@ -492,14 +1112,27 @@ def affichList(x,y,listp_,col):
      
     return grid
 
-
-    
-
-def aff(tabref,tabaf,col):
-    grid = np.zeros(image.shape, dtype=np.uint8)
+def visui(x,y,col):
+    grid = np.zeros(shapeRef, dtype=np.uint8)
     r=col[0]
     g=col[1]
     b=col[2]
+   
+    x0=int(cellLocs[x][y][0])
+    x1=int(cellLocs[x][y][2])
+    y0=int(cellLocs[x][y][1])
+    y1=int(cellLocs[x][y][3])
+    grid=cv2.rectangle(grid, (x1,y1), (x0,y0), (r,g,b), -1)     
+    return grid
+
+
+
+def aff(tabref,tabaf,col):
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    r=col[0]
+    g=col[1]
+    b=col[2]
+
     for y in range(0,9):
        for x in range(0,9):
 
@@ -517,12 +1150,13 @@ def aff(tabref,tabaf,col):
                     cv2.putText(grid, str(tabaf[x,y]),(px,py), font, 0.6, (r, g, b), 1, cv2.LINE_AA)
                 else:
                     # print('equiv diff',y,x,tabaf[x,y],tabref[x,y])
-                    cv2.putText(grid, str(tabaf[x,y]),(px,py), font, 0.5, (b, g, r), 1, cv2.LINE_AA)
-            grid=cv2.rectangle(grid, (x1,y1), (x0,y0), (255,255,255), 2)
+                    cv2.putText(grid, str(tabaf[x,y]),(px,py), font, 0.6, (b, r, g), 1, cv2.LINE_AA)
+            grid=cv2.rectangle(grid, (x1,y1), (x0,y0), (255,255,255), 1)
     return grid
 
 def affinit(tabref,col):
-    grid = np.zeros(image.shape, dtype=np.uint8)
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    
     r=col[0]
     g=col[1]
     b=col[2]
@@ -546,7 +1180,7 @@ def affinit(tabref,col):
             py=int((y0+y1)/2)
             
             if  tabref[x,y] != 0 :
-                    cv2.putText(grid, str(tabref[x,y]),(px,py), font, 0.5, (b, g, r), 1, cv2.LINE_AA)
+                    cv2.putText(grid, str(tabref[x,y]),(px,py), font, 0.8, (b, g, r), 2, cv2.LINE_AA)
             grid=cv2.rectangle(grid, (x1,y1), (x0,y0), (80,80,80), 1)
     for l  in XX:
             x0=l[0]
@@ -566,31 +1200,72 @@ def lookForPossible(xi,yi):
     return listpf
 
 
+
+
 def lookForPxPy(xi,yi):
-    px=0
-    py=0
+    ArraySelected = np.zeros(shapeRef, dtype=np.uint8)
+    color=(255,255,0)
+    thickness=3
+    CaseSelected=False
+    px=-1
+    py=-1
+    foundy=False
+    foundx=False
     for x in range(0,9):
           x0=int(cellLocs[0][x][0])
           x1=int(cellLocs[0][x][2])
           if xi >=x0 and xi <=x1:
               py=x
-              #print('good',px)
+              foundy = True
+              #print('good',py)
               break
 
-    for y in range(0,9):
-        
+    for y in range(0,9):      
           y0=int(cellLocs[y][0][1])
           y1=int(cellLocs[y][0][3])
           # print(y,y0,y1,yi)
-          if yi >=y0 and yi <=y1:
+          if yi-101 >=y0 and yi-101 <=y1:
               px=y
-              # print('good',py)
+              #print('good',px)
+              foundx = True
               break
     #      # print(x0,x1,y0,y1)
-    return px,py
-    
-def lookForFig():
+    if foundx and foundy: 
+        CaseSelected=True
+        start_point = (cellLocs[px][py][0], cellLocs[px][py][1]) 
+        end_point = (cellLocs[px][py][2], cellLocs[px][py][3]) 
+        # print("start_point",start_point)
+        # print("end_point",end_point)
+        ArraySelected = cv2.rectangle(ArraySelected, start_point, end_point, color, thickness) 
+        # print("write jpeg",CaseSelected)
+        # cv2.imwrite('a.jpg',ArraySelected)
+        
+    return px,py,ArraySelected,CaseSelected
+
+def lookForFigSeed():    
     # loop over the grid locations
+    cellLocs=[]
+    for y in range(0, 9):
+    	# initialize the current list of cell locations
+        row = []
+        for x in range(0, 9):
+            # print(x,y)
+    		# compute the starting and ending (x, y)-coordinates of the
+    		# current cell
+            startX = x * stepX
+            startY = y * stepY
+            endX = (x + 1) * stepX
+            endY = (y + 1) * stepY
+    		# add the (x, y)-coordinates to our cell locations list
+            row.append((startX, startY, endX, endY))
+        cellLocs.append(row)
+    return cellLocs
+    
+
+def lookForFig(stepX,stepY,puzzleImage):
+    # loop over the grid locations
+    cellLocs=[]
+    board=np.zeros((9, 9), dtype="int")
     for y in range(0, 9):
     	# initialize the current list of cell locations
         row = []
@@ -727,28 +1402,160 @@ def lookForFig():
         cellLocs.append(row)
     return board,cellLocs
 
-print("[INFO] loading input image...")
-image = cv2.imread(imageToLoad)
 
-# image =rotate_image(image,90)
+def convertBoard(board):
+    target=[]
+    for j in range(9):
+        line=[]
+        for i in range(9):
+            line.append(board[j][i])
+        target.append(line)
+    return target
 
-aspectratio=image.shape[0]/image.shape[1]
-newheight=int(finalwidth*aspectratio)
+def convertBoardInv(board):
+    target=np.zeros((9, 9), dtype="int")
+    for j in range(9):
+        for i in range(9):
+            if board[i][j]==None:
+                target[i,j]=0
+            else: 
+                target[i,j]=board[i][j]
+    return target
 
-image=cv2.resize(image, (finalwidth, newheight))
-(puzzleImage, warped) = find_puzzle(image, debug=False)
+
+def loadimage(imageToLoad):
+    print("[INFO] loading input image...")
+    image = cv2.imread(imageToLoad)
+    
+    # image =rotate_image(image,90)
+    
+    aspectratio=image.shape[0]/image.shape[1]
+    newheight=int(finalwidth*aspectratio)
+    
+    image=cv2.resize(image, (finalwidth, newheight))
+    # cv2.imshow("image", image)
+    
+    (puzzleImage, warped) = find_puzzle(image, debug=debug)
+    
+    aspectratio=warped.shape[0]/warped.shape[1]
+    newheight=int(finalwidth*aspectratio)
+    warped=cv2.resize(warped, (finalwidth, newheight))
+    puzzleImage=cv2.resize(puzzleImage, (finalwidth, newheight))
+    image=cv2.resize(image, (finalwidth, newheight))
+    
+    
+    # cv2.imshow("puzzleImage", puzzleImage)
+    # cv2.imshow("warped", warped)
+    # cv2.imshow("image", image)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()  
+    
+
+    
+    # initialize our 9x9 Sudoku board
+    board = np.zeros((9, 9), dtype="int")
+    # a Sudoku puzzle is a 9x9 grid (81 individual cells), so we can
+    # infer the location of each cell by dividing the warped image
+    # into a 9x9 grid
+    stepX = warped.shape[1] // 9
+    stepY = warped.shape[0] // 9
+    # print(warped.shape)
+    # print(image.shape)
+    # initialize a list to store the (x, y)-coordinates of each cell
+    # location
+   # cellLocs = []
+
+    
+    if debugN:
+        (board,cellLocs) = pickle.load( open( "save.p", "rb" ) )
+    else:
+        board,cellLocs=lookForFig(stepX,stepY,puzzleImage)
+        pickle.dump( (board,cellLocs), open( "save.p", "wb" ) )
+
+    return board,cellLocs
+
+#Radomseed=False
+
+
+if Radomseed :
+    seed=random.randrange(1000)
+    shapeRef=(596, 600, 3)
+    puzzle= Sudoku(3, 3,seed=seed).difficulty(0.8)
+    board= convertBoardInv(puzzle.board)
+    stepX = shapeRef[1] // 9
+    stepY = shapeRef[0] // 9
+   # cellLocs = []
+    cellLocs=lookForFigSeed()
+
+else:
+    board,cellLocs=loadimage(imageToLoad)
+    shapeRef=(631, 600, 3)
+    # image = cv2.imread(imageToLoad)
+    
+    # # image =rotate_image(image,90)
+    
+    # aspectratio=image.shape[0]/image.shape[1]
+    # newheight=int(finalwidth*aspectratio)
+    
+    # image=cv2.resize(image, (finalwidth, newheight))
+    # # cv2.imshow("image", image)
+    
+    # (puzzleImage, warped) = find_puzzle(image, debug=False)
+    
+    # aspectratio=warped.shape[0]/warped.shape[1]
+    # newheight=int(finalwidth*aspectratio)
+    # warped=cv2.resize(warped, (finalwidth, newheight))
+    # puzzleImage=cv2.resize(puzzleImage, (finalwidth, newheight))
+    # image=cv2.resize(image, (finalwidth, newheight))
+    
+
+    # print(warped.shape)
+    # print(image.shape)
+    
+    # # cv2.imshow("puzzleImage", puzzleImage)
+    # # cv2.imshow("warped", warped)
+    # # cv2.imshow("image", image)
+    # # cv2.waitKey()
+    # # cv2.destroyAllWindows()  
+    
+
+    
+    # # initialize our 9x9 Sudoku board
+    # board = np.zeros((9, 9), dtype="int")
+    # # a Sudoku puzzle is a 9x9 grid (81 individual cells), so we can
+    # # infer the location of each cell by dividing the warped image
+    # # into a 9x9 grid
+    # stepX = warped.shape[1] // 9
+    # stepY = warped.shape[0] // 9
+    # # initialize a list to store the (x, y)-coordinates of each cell
+    # # location
+    # cellLocs = []
+
+    
+    # if debugN:
+    #     (board,cellLocs) = pickle.load( open( "save.p", "rb" ) )
+    # else:
+    #     board,cellLocs=lookForFig(stepX,stepY,puzzleImage)
+    #     pickle.dump( (board,cellLocs), open( "save.p", "wb" ) )
+
+ArraySelected =np.zeros(shapeRef, dtype=np.uint8)
+
+
+
+
+# cv2.imshow("puzzleImage", puzzleImage)
+# cv2.imshow("warped", warped)
+# cv2.waitKey()
+# cv2.destroyAllWindows()  
+
+
 
 # initialize our 9x9 Sudoku board
-board = np.zeros((9, 9), dtype="int")
-# a Sudoku puzzle is a 9x9 grid (81 individual cells), so we can
-# infer the location of each cell by dividing the warped image
-# into a 9x9 grid
-stepX = warped.shape[1] // 9
-stepY = warped.shape[0] // 9
+
 # initialize a list to store the (x, y)-coordinates of each cell
 # location
-cellLocs = []
-ref = np.zeros((9, 9), dtype="int")
+
+# ref = np.zeros((9, 9), dtype="int")
 # ref[1,8]=6
 # ref[1,7]=2
 # ref[2,5]=2
@@ -778,47 +1585,97 @@ ref = np.zeros((9, 9), dtype="int")
 
 
 
-ref[1,7]=4
-ref[1,8]=3
-ref[2,4]=3
-ref[2,5]=1
+# ref[1,7]=4
+# ref[1,8]=3
+# ref[2,4]=3
+# ref[2,5]=1
 
-ref[3,1]=4
-ref[3,5]=7
-ref[4,2]=3
-ref[4,6]=2
-ref[4,8]=8
-ref[5,2]=8
-ref[5,8]=5
-ref[6,1]=9
-ref[6,2]=4
-ref[6,4]=8
-ref[6,7]=5
-ref[7,1]=3
-ref[7,4]=5
-ref[7,5]=9
-ref[7,6]=7
-ref[8,1]=8
-ref[8,2]=5
-ref[8,3]=7
-ref[8,6]=1
-ref[8,7]=2
-
-if debugN:
-    (board,cellLocs) = pickle.load( open( "save.p", "rb" ) )
-else:
-    board,cellLocs=lookForFig()
-    pickle.dump( (board,cellLocs), open( "save.p", "wb" ) )
+# ref[3,1]=4
+# ref[3,5]=7
+# ref[4,2]=3
+# ref[4,6]=2
+# ref[4,8]=8
+# ref[5,2]=8
+# ref[5,8]=5
+# ref[6,1]=9
+# ref[6,2]=4
+# ref[6,4]=8
+# ref[6,7]=5
+# ref[7,1]=3
+# ref[7,4]=5
+# ref[7,5]=9
+# ref[7,6]=7
+# ref[8,1]=8
+# ref[8,2]=5
+# ref[8,3]=7
+# ref[8,6]=1
+# ref[8,7]=2
 
 
-# print(board)
-
-
+# if debugN:
+#     (board,cellLocs) = pickle.load( open( "save.p", "rb" ) )
+# else:
+#     board,cellLocs=lookForFig()
+#     pickle.dump( (board,cellLocs), open( "save.p", "wb" ) )
+#board[0][0]=1
 tabresrinit=board.copy()
 tabentert=board.copy()
 ggdinit=affinit(tabresrinit,(255,255,0))
+# puzzle=convertBoard(board)
+# puzzle = Sudoku(3, 3, board=puzzle)
+resultsolved,solved=solvesudokuNew(board)
+# if resultsolved:
+#     print('there is a solution')
+# else:
+#     print("There is NO SOLUTION")
 
-loop(ggdinit)
+
+# if(solvesudoku(board)):
+#      print('there is a solution')
+
+#print("board",board)
+#board[0][0]=1
+#print("board",board)
+
+# puzzle= Sudoku(3, 3, seed=100).difficulty(0.5)
+# print(puzzle)
+# puzzle=convertBoard(board)
+
+# puzzle = Sudoku(3, 3, board=puzzle)
+# start = time.time()
+# solved=solvesudokuNew(board)
+# end = time.time()
+# delta = end - start
+# print ("took %.2f seconds to process new" % delta)
+# print(solved.board)
+# solved1=convertBoardInv(solved.board)
+# print(solved1)
+# try:
+#     solution = puzzle.solve(raising=True)
+#     end = time.time()
+#     delta = end - start
+#     print ("took %.2f seconds to process new" % delta)
+#     solution.show()
+# except:
+#     print('No solution')
+    
+#ggdinit=aff(board,solved1,(255,255,0))
+
+# start = time.time()
+# solvesudoku(board)
+# end = time.time()
+# delta = end - start
+# print ("took %.2f seconds to process" % delta)
+# print(board)
+
+#ooo
+# print("cellLocs")
+# print(cellLocs)
+
+
+
+
+loop(board)
 
 if solve:
     if(solvesudoku(board)):
