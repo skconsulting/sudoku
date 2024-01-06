@@ -755,7 +755,21 @@ def loop(board):
           if not ResulHelp:
                     print('octule')
                     ResulHelp,tabhelp=naked_dig(tablist,(39,20,50),8)
-          redraw()
+          if not ResulHelp:
+                    print('Locked candidate')
+                    ResulHelp,tabhelp=locked_candidate(tablist,(39,20,50),8)
+          if ResulHelp:
+              redraw()
+          else:
+              print('nothing found')
+        
+        elif key == ord("J"):
+           #tempo,tablisttempo=lfp()
+           print('Locked candidate')
+           #ResulHelp,tabhelp=only_col(tablist,(12,20,50))
+           ResulHelp,tabhelp=locked_candidate(tablist,(12,20,50),1)
+           redraw()
+    
    
         elif key == ord("z"):
             webcamV=True
@@ -967,6 +981,8 @@ def rectfrid(i,j,grid,col):
     grid=cv2.rectangle(grid, (x1,y1), (x0,y0), (r,g,b), -1)   
     return grid
 
+
+
 def combinliste(seq, k, b):
     p = []
     q=[]
@@ -1012,13 +1028,159 @@ def combinliste(seq, k, b):
                             return (True,q[i])
                
     return False,b
+            
 
-# def naked (a,b,n):
-    
-#     result,q= combinliste(a, n, b)
-#     return result,q
+
+    return(False,0,'X',p)
+            
+                
+        # if n in 
+        # # print(i)
+        # resultu=[]
+        # #print(p[i])
+        # for ii in range(k):
+        #     # print(ii,'ii')
+        #     # print('pideii',p[i][ii])
+        #     for jj in range(len(p[i][ii])):
+        #         #print(jj,'jj')
+        #         #print(result[i][ii][jj])
+        #         if p[i][ii][jj] not in resultu:
+        #            resultu.append(p[i][ii][jj])
+        # # print('resultu',resultu)
+
+        # if len(resultu)==k:
+        #     # print(resultu)
+        #     # print(p[i],q[i])
+        #     for uu in resultu:
+        #         for jj,ll in enumerate (b):
+        #             if ll not in q[i]:
+        #                 if uu in seq[jj]:
+        #                     # print(q[i])
+        #                     # print('unique')
+        #                     return (True,q[i])
+               
+    return False,b
+def combinliste_locked(a,n,b):
+    p = []
+    #for n in range(3):
+    for u in range(9):
+        if n in a[u]:
+            p.append(b[u])
+    #line
+    # print('a',a)
+    # print('p',p)
    
+    xl=[]
+    yl=[]
+    if len(p)>1:
+        for y in (p):
+            xl.append(y[0])
+            yl.append(y[1])
 
+        xl=set(xl)
+        yl=set(yl)
+        # print('xl',xl)
+        # print('yl',yl)
+                
+        if len(xl)>1:
+            #print('colonne',n,p)
+            sets=[(0,1,2),(3,4,5),(6,7,8)]
+            for ist,lst in  enumerate(sets):
+                sameset=True
+                for ii in xl:
+                    if ii not in lst:
+                        sameset=False
+                        break
+                if sameset:
+                    #print('GOOD COL',sets[ist],p)
+                    return(True,'C',p,sets[ist])
+                
+        if len(yl)>1:
+            #print('line',n,p)
+            sets=[(0,1,2),(3,4,5),(6,7,8)]
+            for ist,lst in  enumerate(sets):
+                sameset=True
+                for ii in yl:
+                  if ii not in lst:
+                      sameset=False
+                      break
+                if sameset:
+                   #print('GOOD LINE',sets[ist],p)
+                   return(True,'L',p,sets[ist])
+    return(False,'X',p,p)
+    
+
+def locked_candidate(arr,col,n):
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    for n in range(1,9):
+        #print("line",'number',n)
+        for j in range(9):
+            a=[]
+            b=[]
+            for i in range(9):
+                a.append(arr[j,i])
+                b.append((i,j))
+            # print(a)
+            #print(naked(a,b))
+            
+            Result,P,p,sets=combinliste_locked(a,n,b)
+            if Result:
+                # print('1')
+                    # print('p result is', p)
+                    # print('for line', j)
+                    # print('sets=',sets)
+                    sectopx = 3 * (j//3)
+                    sectopy = 3 * (sets[0]//3)
+                    # print('sectopx:',sectopx,'sectopy:',sectopy)
+                    for xj in range(sectopx, sectopx+3):
+                        for xi in range(sectopy, sectopy+3):
+                            # print(arr[xj,xi],(xi,xj))
+                            if n in arr[xj,xi] :
+                                if (xi,xj) not in p:
+                                  #print('goodr for ',(xi,xj))
+                                  p.append((xi,xj))
+                                  for nri in range(len(p)):
+                                      grid= rectfrid(p[nri][0],p[nri][1],grid,col)
+                                  return True,grid
+                    # if goodr:
+                    #     print(p)
+                    #     for nri in range(len(p)):
+                    #         grid= rectfrid(p[nri][0],p[nri][1],grid,col)
+                    #     return True,grid
+                #♦print(grid.shape)
+                # return True,grid
+        #print("colonne",'number',n)
+        for j in range(9):
+             a=[]
+             b=[]
+             for i in range(9):
+                 a.append(arr[i,j])
+                 b.append((j,i))
+             Result,P,p,sets=combinliste_locked(a,n,b)
+             if Result:
+                 # print('1')
+                     # print('p result is', p)
+                     # print('for colonne', j)
+                     # print('sets=',sets)
+                     sectopy = 3 * (j//3)
+                     sectopx = 3 * (sets[0]//3)
+                    # print('sectopx:',sectopx,'sectopy:',sectopy)
+                     for xj in range(sectopx, sectopx+3):
+                         for xi in range(sectopy, sectopy+3):
+                            # print(arr[xj,xi],(xi,xj))
+                             if n in arr[xj,xi] :
+                                 if (xi,xj) not in p:
+                                     #print('goodr for ',(xi,xj))
+                                     p.append((xi,xj))
+                     # if goodr:
+                     #     print('goodr')
+                     #     print(p)
+                                     for nri in range(len(p)):
+                                         grid= rectfrid(p[nri][0],p[nri][1],grid,col)
+                                     return True,grid
+    return False,grid
+
+    
 
 def naked_dig(arr,col,n):
     grid = np.zeros(shapeRef, dtype=np.uint8)
