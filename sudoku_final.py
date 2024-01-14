@@ -524,19 +524,20 @@ def loop(board):
     while True:
         # keys up,down,left,right: move position one case
         # + add number
-        #- substract number from possible
-        #ctrl z : undo
+        # - substract number from possible
+        # ctrl z : undo
         # Suppr: suppress entry in modifu
-        #d visualise double
+        # d visualise double
         # H Help
-        #l   reset list all possibles
-        #L toggle view list possible 
-        #m modify source
-        #n new blank
+        # l   reset list all possibles
+        # L toggle view list possible 
+        # m modify source
+        # n new blank
         # q or Q: quit   
-        #r reset all
+        # r reset all
         # S save to save.p
         # s solve
+        # x write for Simple Sudoku
         #v + "number" visualise all possible "number"
 
        #z webcam
@@ -595,7 +596,21 @@ def loop(board):
             showPossible= not(showPossible)
             # imagel=lfp(imagel)
             redraw()
- 
+        elif key == ord("x"):
+             print('write file for Simple Sudoku')
+             f = open("forSS.ss", "w")
+             for i in range(9):
+                 if i in(3,6): 
+                     f.write('-----------\n')
+                 for j in  range(9):
+                     if tabentert[i,j]==0:
+                         f.write('.')
+                     else:
+                         f.write(str(tabentert[i,j]))
+                     if j in(3,6): 
+                         f.write('|')
+                 f.write('\n')
+             f.close()
                 
         elif key == ord("+"):
                 print ('plus')
@@ -788,54 +803,72 @@ def loop(board):
 
         elif key == ord("H"):
           #tempo,tablisttempo=lfp()
+          hint="only possible"
           print("only possible")
-          ResulHelp,tabhelp= onlypossible(tablist,(12,20,50),1)
-        
+          ResulHelp,tabhelp= onlypossible(tablist,(12,20,50),1)       
           if not ResulHelp:
+              hint="single"
               print('single')
-              #ResulHelp,tabhelp=only_col(tablist,(12,20,50))
               ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
           if not ResulHelp:
+              print("intersection removal")
+              hint="intersection removal"
+              ResulHelp,tabhelp= intersecr(tablist,(12,20,50),1)
+          if not ResulHelp:
               print('double')
+              hint="double"
               ResulHelp,tabhelp=naked_dig(tablist,(16,20,50),2)
           if not ResulHelp:
               print('triple')
+              hint="triple"
               ResulHelp,tabhelp=naked_dig(tablist,(19,20,50),3)
           if not ResulHelp:
                   print('quadruple')
+                  hint="quadruple"
                   ResulHelp,tabhelp=naked_dig(tablist,(21,20,50),4)
           if not ResulHelp:
                 print('quintuple')
+                hint="quintuple"
                 ResulHelp,tabhelp=naked_dig(tablist,(25,20,50),5)
           if not ResulHelp:
                       print('sextuple')
+                      hint="sextuple"
                       ResulHelp,tabhelp=naked_dig(tablist,(29,20,50),6)
           if not ResulHelp:
                       print('septuple')
+                      hint="septuple"
                       ResulHelp,tabhelp=naked_dig(tablist,(34,20,50),7)
           if not ResulHelp:
-                    print('octule')
+                    print('octuple')
+                    hint="octuple"
                     ResulHelp,tabhelp=naked_dig(tablist,(39,20,50),8)
           if not ResulHelp:
                     print('Locked candidate')
+                    hint="Locked candidate"
                     ResulHelp,tabhelp=locked_candidate(tablist,(39,20,50),8)
           if not ResulHelp:
                         print("xwing2")
+                        hint="xwing2"
                         ResulHelp,tabhelp= xwing2(tablist,(12,20,50),1)
           if not ResulHelp:
                     print("xwing3")
+                    hint="xwing3"
                     ResulHelp,tabhelp= xwing3(tablist,(12,20,50),1)
           if not ResulHelp:
-                   print('excluded based on colors')        
+                   print('excluded based on colors')    
+                   hint="excluded based on colors"
                    ResulHelp,tabhelp=exBaOnCo(tablist,(12,20,50),1)
+                
           if ResulHelp:
+              print('found:',hint)
               redraw()
           else:
               print('nothing found')
         
         elif key == ord("J"):
-             print("xwing2")
-             ResulHelp,tabhelp= xwing2(tablist,(12,20,50),1)
+             print("intersection removal")
+             hint=""
+             ResulHelp,tabhelp= intersecr(tablist,(12,20,50),1)
              if ResulHelp:
                    redraw()
              else:
@@ -850,7 +883,7 @@ def loop(board):
             # valueVisu=value
             toggleDou=False
             dou=False
-            # value=-1
+            value=-1
             print('visu',valueVisu,visuActive)
             cv2.rectangle(gridMenu, (390,60), (550,90), (20,20,10), -1)
             if visuActive and (valueVisu in range(1,9)):
@@ -1345,7 +1378,61 @@ def lookForPossibleTabn(tab,num,arr):
     return listpf
 
 
+def intersecr(arr,col,n):
+    comment=False
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    for n in range(1,9):
+        for j in (0,3,6):
+             for i in (0,3,6):
+                 sectopx = 3 * (j//3)
+                 sectopy = 3 * (i//3)
+                 # print('sectopx:',sectopx,'sectopy:',sectopy)
+                 b=[]
+                 for xj in range(sectopx, sectopx+3):
+                     for xi in range(sectopy, sectopy+3):
+                         # print(xj,xi,arr[xi,xj])
+                         if n in arr[xi,xj]:
+                             # print('xi:',xi,'xj:',xj)
+                             b.append((xj,xi))
+                 if len(b)>0:
+                     xl=[]
+                     yl=[]
+                     for bb in b:
+                        xl.append(bb[0])
+                        yl.append(bb[1])
+                     # print('xl',xl)
+                     # print('yl',yl)
+                     if len(set(yl))==1 :
+                        for zz in range(9):
+                             if zz not in xl:
+                                 if comment:
+                                     print(zz,arr[yl[0],zz])
+                                 if n in arr[yl[0],zz]:
+                                     b.append((zz,yl[0]))
+                                     if comment:
+                                          print(n)
+                             
+                           
+                        # print(n,"only possible in carre b",b)
+                                     for nri in range(len(b)):
+                                        grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+                                     return True,grid
 
+                     if len(set(xl))==1 :
+                       for zz in range(9):
+                            if zz not in yl:
+                                if comment:
+                                    print(zz,arr[xl[0],zz])
+                                if n in arr[zz,xl[0]]:
+                                    b.append((xl[0],zz))
+                                    if comment:
+                                      print(n)
+
+                                    for nri in range(len(b)):
+                                       grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+                                    return True,grid
+                        
+    return False,grid
 
 def exBaOnCo(arr,col,n):
     grid = np.zeros(shapeRef, dtype=np.uint8)
