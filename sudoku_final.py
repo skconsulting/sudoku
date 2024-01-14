@@ -22,6 +22,7 @@ import pickle
 import time
 from sudoku import Sudoku
 import random
+import itertools
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -33,6 +34,7 @@ Radomseed=False
 finalwidth=600
 imageToLoad='sudoku1.jpg'
 imageToLoad='cam.jpg'
+imageToLoad='sudoku2_td.jpg'
 
 
 CaseSelected = False
@@ -195,15 +197,18 @@ def plusl(px,py,num):
         print('value ' ,num,' impossible')
     
 def pluslmos(px,py,num,board):
-    if check_row(board,num,px) and check_col(board,num,py) and not check_cell(board,num,px,py):
-        board[px,py]=num
+        if num != 0:
+            if check_row(board,num,px) and check_col(board,num,py) and not check_cell(board,num,px,py):
+                board[px,py]=num
+                #print('add',num)
+            else:
+                # print('value ' ,num,' impossible for row',check_row(tabentert,num,px) )
+                # print('value ' ,num,' impossible for col',check_col(tabentert,num,py) )
+                # print('value ' ,num ,' impossible for cell',not(check_cell(tabentert,num,px,py)) )
+                print('value ' ,num,' impossible for board')
+        else:
+            board[px,py]=0
         return board
-        #print('add',num)
-    else:
-        # print('value ' ,num,' impossible for row',check_row(tabentert,num,px) )
-        # print('value ' ,num,' impossible for col',check_col(tabentert,num,py) )
-        # print('value ' ,num ,' impossible for cell',not(check_cell(tabentert,num,px,py)) )
-        print('value ' ,num,' impossible for board')
 def click_and_crop(event, x, y, flags, param):
     global quitl,lookforList,tabentert,plus,value,visu,gridVisu,tablist,ArraySelected,CaseSelected,moins,px,py,dbclick
 
@@ -360,6 +365,7 @@ def redraw():
         griderror=np.zeros(shapeRef,np.uint8)
         resultSolved,_=solvesudokuNew(tabentert)
         if not (resultSolved) or errormoins:
+            print('error ',"resultSolved",resultSolved," errormoins ",errormoins)
             if lastpx>-1 and lastpy>-1:
                 griderror+=visui(lastpx,lastpy,(0,0,255))             
         
@@ -473,6 +479,7 @@ def loop(board):
     lastpy=-1
     valueVisu=-1
     errormoins=False
+    waitforvalue=False
     image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
     #oldshape=image.shape
     #print(oldshape)
@@ -515,8 +522,28 @@ def loop(board):
     # print(tablist)
 
     while True:
-   
+        # keys up,down,left,right: move position one case
+        # + add number
+        #- substract number from possible
+        #ctrl z : undo
+        # Suppr: suppress entry in modifu
+        #d visualise double
+        # H Help
+        #l   reset list all possibles
+        #L toggle view list possible 
+        #m modify source
+        #n new blank
+        # q or Q: quit   
+        #r reset all
+        # S save to save.p
+        # s solve
+        #v + "number" visualise all possible "number"
+
+       #z webcam
        # key = cv2.waitKey(100) & 0xFF
+
+
+       
         key = cv2.waitKeyEx(0)
         if key != 255:
             print( "I have typed",key)
@@ -599,13 +626,16 @@ def loop(board):
         elif key == ord("v"):
                 value=-1
                 visu=True
+                waitforvalue=True
                 visuActive = not(visuActive)
+                # if not(visuActive):
+                #     redraw()
                 print ('visualize only some values',visuActive)
                 moins=False
                 plus=False
                 dou=False
                 gridpair=np.zeros(shapeRef,np.uint8)
-                tabhelp=np.zeros(shapeRef,np.uint8)
+                # tabhelp=np.zeros(shapeRef,np.uint8)
         
         elif key == ord("d"):                     
                 dou=True
@@ -622,8 +652,7 @@ def loop(board):
                  plus=False
                  visu=False
                 
-        elif key == ord("r"):                     
-             
+        elif key == ord("r"):                            
               print ('reset')
               CaseSelected=False
               tabentert=board.copy()
@@ -633,6 +662,18 @@ def loop(board):
               imagel=np.ones(shapeRef,np.uint8)
               imagel,tablist=lfp()
               redraw()
+        elif key == ord("n"):                            
+               print ('new blank')
+               CaseSelected=False
+               board= np.zeros((9, 9), dtype="int")
+               ggdinit=affinit(board,(255,255,0))
+               tabentert=board.copy()
+               image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+               gridVisu=np.zeros(shapeRef,np.uint8)
+               tabhelp=np.zeros(shapeRef,np.uint8)
+               imagel=np.ones(shapeRef,np.uint8)
+               imagel,tablist=lfp()
+               redraw()
         elif key == ord("S"):
             print ('save')
             #boardu,cellLocs=loadimage('cam.jpg')
@@ -677,10 +718,12 @@ def loop(board):
 
                 
         elif key == ord("1") or key == ord("2") or key == ord("3")  or key == ord("4") or \
-            key == ord("5") or key == ord("6") or key == ord("7") or key == ord("8") or key == ord("9") or key == ord("0"):
+            key == ord("5") or key == ord("6") or key == ord("7") or key == ord("8") or key == ord("9") or key == ord("0") :
                 value=int(chr(key))
                 if visu:
-                    print ('visu', value)
+                    valueVisu=value
+                    print ('visu', valueVisu)
+                    # visu=True
                 if plus:
                     print ('plus', value)
                     lastpx=px
@@ -690,10 +733,12 @@ def loop(board):
                     cv2.putText(gridMenu,'+ '+': '+chr(key) ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
                     tabhelp=np.zeros(shapeRef,np.uint8)
                     moins=False
+                    waitforvalue=False
                 if moins:
                     print ('moins', value)
                     numsaved= value
                     plus=False
+                    waitforvalue=False
                     lastpx=px
                     lastpy=py
                     cv2.rectangle(gridMenu, (400,27), (590,58), (20,30,10), -1)
@@ -706,7 +751,16 @@ def loop(board):
                         cv2.putText(gridMenu,'- '+': '+chr(key) ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
                     tabhelp=np.zeros(shapeRef,np.uint8)
                 if mos:
+                    waitforvalue=False
+                    lastpx=px
+                    lastpy=py
+                    tablistSaved= tablist.copy()
                     print ('add to source',value)
+        elif key==3014656:
+           if mos:
+               value=3014656
+               print ('add to source',value)
+           
                     
         elif key == 26:
                 print('ctrl z)')
@@ -719,6 +773,9 @@ def loop(board):
                         px=lastpx
                         py=lastpy
                         moinslundo(px,py,numsaved)
+                        errormoins=False
+                        cv2.rectangle(gridMenu, (400,27), (590,58), (20,30,10), -1)
+                        cv2.putText(gridMenu,'- '+': '+chr(key) ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
                     value = -1
                     lastpy=-1
                     lastpx=-1
@@ -731,9 +788,13 @@ def loop(board):
 
         elif key == ord("H"):
           #tempo,tablisttempo=lfp()
-          print('single')
-          #ResulHelp,tabhelp=only_col(tablist,(12,20,50))
-          ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
+          print("only possible")
+          ResulHelp,tabhelp= onlypossible(tablist,(12,20,50),1)
+        
+          if not ResulHelp:
+              print('single')
+              #ResulHelp,tabhelp=only_col(tablist,(12,20,50))
+              ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
           if not ResulHelp:
               print('double')
               ResulHelp,tabhelp=naked_dig(tablist,(16,20,50),2)
@@ -758,17 +819,27 @@ def loop(board):
           if not ResulHelp:
                     print('Locked candidate')
                     ResulHelp,tabhelp=locked_candidate(tablist,(39,20,50),8)
+          if not ResulHelp:
+                        print("xwing2")
+                        ResulHelp,tabhelp= xwing2(tablist,(12,20,50),1)
+          if not ResulHelp:
+                    print("xwing3")
+                    ResulHelp,tabhelp= xwing3(tablist,(12,20,50),1)
+          if not ResulHelp:
+                   print('excluded based on colors')        
+                   ResulHelp,tabhelp=exBaOnCo(tablist,(12,20,50),1)
           if ResulHelp:
               redraw()
           else:
               print('nothing found')
         
         elif key == ord("J"):
-           #tempo,tablisttempo=lfp()
-           print('Locked candidate')
-           #ResulHelp,tabhelp=only_col(tablist,(12,20,50))
-           ResulHelp,tabhelp=locked_candidate(tablist,(12,20,50),1)
-           redraw()
+             print("xwing2")
+             ResulHelp,tabhelp= xwing2(tablist,(12,20,50),1)
+             if ResulHelp:
+                   redraw()
+             else:
+                   print('nothing found')
     
    
         elif key == ord("z"):
@@ -776,17 +847,18 @@ def loop(board):
         
             
         if visu:
-            valueVisu=value
+            # valueVisu=value
             toggleDou=False
             dou=False
-            value=-1
-            print('visu1',valueVisu,visuActive)
-            cv2.rectangle(gridMenu, (400,60), (550,90), (20,30,10), -1)
-            if visuActive:
-                cv2.putText(gridMenu,'visu '+': '+chr(key) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+            # value=-1
+            print('visu',valueVisu,visuActive)
+            cv2.rectangle(gridMenu, (390,60), (550,90), (20,20,10), -1)
+            if visuActive and (valueVisu in range(1,9)):
+                cv2.putText(gridMenu,'visu : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                #•cv2.putText(gridMenu,'visu : '+ '7' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
             redraw()
-            #visu=False
+            # visu=False
         
         if dou:
                 print('higlihts pair')
@@ -822,8 +894,10 @@ def loop(board):
             redraw()
             
         if mos and value >0 and CaseSelected:
-             #print('I add', value)
+             print('I add to source', value)
            #  plus=False
+             if value == 3014656:
+                 value = 0
              board=pluslmos(px,py,value,board)
              value = -1
              tabresrinit=board.copy()
@@ -832,24 +906,7 @@ def loop(board):
              tabentert=board.copy()
              imagel,tablist=lfp()
              redraw()
-             
-        # if webcamV:
-        #     print('start webcam dummy')
-        #     board,cellLocs=loadimage('cam.jpg')
-        #     webcamV=False
-           
-        #     tabresrinit=board.copy()
-        #     ggdinit=affinit(tabresrinit,(255,255,0))
-        #     image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
-        #     tabentert=board.copy()
-        #     imagel,tablist=lfp()
-        #     # # cv2.imshow("puzzleImage", puzzleImage)
-        #     # # cv2.imshow("warped", warped)
-        #     cv2.imshow("image", image)
-        #     cv2.setMouseCallback("image", click_and_crop)
-        #     # cv2.waitKey()
-        #     # cv2.destroyWindow("image")
-        #     redraw()
+
         
         webcamV1=False 
         if webcamV1:
@@ -1029,37 +1086,6 @@ def combinliste(seq, k, b):
                
     return False,b
             
-
-
-    return(False,0,'X',p)
-            
-                
-        # if n in 
-        # # print(i)
-        # resultu=[]
-        # #print(p[i])
-        # for ii in range(k):
-        #     # print(ii,'ii')
-        #     # print('pideii',p[i][ii])
-        #     for jj in range(len(p[i][ii])):
-        #         #print(jj,'jj')
-        #         #print(result[i][ii][jj])
-        #         if p[i][ii][jj] not in resultu:
-        #            resultu.append(p[i][ii][jj])
-        # # print('resultu',resultu)
-
-        # if len(resultu)==k:
-        #     # print(resultu)
-        #     # print(p[i],q[i])
-        #     for uu in resultu:
-        #         for jj,ll in enumerate (b):
-        #             if ll not in q[i]:
-        #                 if uu in seq[jj]:
-        #                     # print(q[i])
-        #                     # print('unique')
-        #                     return (True,q[i])
-               
-    return False,b
 def combinliste_locked(a,n,b):
     p = []
     #for n in range(3):
@@ -1108,11 +1134,303 @@ def combinliste_locked(a,n,b):
                    #print('GOOD LINE',sets[ist],p)
                    return(True,'L',p,sets[ist])
     return(False,'X',p,p)
-    
 
-def locked_candidate(arr,col,n):
+def isgoodnumber(table,n):
+    print('run isgoodnumber')
+    #define places where it is not completed
+    #line
+    for i in range(9):
+        a=[]
+        for j in range(9):
+            #print((i,j),table[i][j])
+            if table[i][j]==n:
+                a.append((i,j))
+        if len(a)!=1 :
+            print('unique line',i)
+            print(a)
+            return False,a
+    for i in range(9):
+         a=[]
+         for j in range(9):
+             #print((i,j),table[i][j])
+             if table[j][i]==n:
+                 a.append((i,j))
+         if len(a)!=1:
+             print('unique col ',i)
+             print(a)
+             return False,a
+             
+    for i in (0,1,2):
+        for j in (0,1,2):
+         sectopx = 3 * i
+         sectopy = 3 * j
+         a=[]
+         #print('sectopx:',sectopx,'sectopy:',sectopy)
+         for xj in range(sectopx, sectopx+3):
+                for xi in range(sectopy, sectopy+3):
+           #         print((xi,xj),table[xi][xj])
+                    if table[xi][xj]==n:
+                        a.append((xj,xi))
+         if len(a)!=1:
+            print('unique carre ',i,j)
+            print(a)
+            return False ,a                
+    return True,n
+
+def iswrong(table,n):
+    comment=False
+    if comment:
+        print('run iswrong',n)
+    #define places where it is not completed
+    #line
+    for i in range(9):
+        a=[]
+        for j in range(9):
+            #print((i,j),table[i][j])
+            if table[i][j]%10==n:
+                a.append((i,j))
+        if len(a)==0:
+            if comment:
+                print('wrong line',i)
+            return True
+    for i in range(9):
+         a=[]
+         for j in range(9):
+             #print((i,j),table[i][j])
+             if table[j][i]%10==n:
+                 a.append((i,j))
+         if len(a)==0:
+             if comment:
+                 print('wrong col ',i)
+             return True
+             
+    for i in (0,1,2):
+        for j in (0,1,2):
+         sectopx = 3 * i
+         sectopy = 3 * j
+         a=[]
+         #print('sectopx:',sectopx,'sectopy:',sectopy)
+         for xj in range(sectopx, sectopx+3):
+                for xi in range(sectopy, sectopy+3):
+           #         print((xi,xj),table[xi][xj])
+                    if table[xi][xj]%10==n:
+                        a.append((xj,xi))
+         if len(a)==0:
+            if comment:
+                 print('wrong carre ',i,j)
+            return True   
+    if comment:
+        print('not wrong')
+    return False
+
+def tobenext(table,n):
+    # print('run tobenext',b)
+    #line
+    for i in range(9):
+        a=[]
+        for j in range(9):
+            #print('tobenext Line',(i,j),table[i][j])
+            # if (j,i) in b:
+                if table[i][j]==10+n:
+                    # print('tobenext OK line',(j,i),table[i][j])
+                    a.append((j,i))
+        if len(a)==1:
+            # print('unique line',i)
+            return False,a[0]
+    for i in range(9):
+         a=[]
+         for j in range(9):
+             # if (i,j) in b:
+                 # print((i,j),table[j][i])
+                 if table[j][i]==10+n:
+                     # print('tobenext OK colonne',(i,j),table[i][j])
+                     a.append((i,j))
+         if len(a)==1:
+             # print('unique col ',i)
+             return False,a[0]
+             
+    for i in (0,1,2):
+        for j in (0,1,2):
+         sectopx = 3 * i
+         sectopy = 3 * j
+         a=[]
+         #print('sectopx:',sectopx,'sectopy:',sectopy)
+         for xj in range(sectopx, sectopx+3):
+                for xi in range(sectopy, sectopy+3):
+                    # if (xi,xj) in b:
+           #         print((xi,xj),table[xi][xj])
+                        if table[xi][xj]==10+n:
+                            # print('tobenext OK carre',(xj,xi),table[i][j])
+                            a.append((xi,xj))
+         if len(a)==1:
+            # print('unique carre ',xj,xj)
+            # print(a)
+            return False ,a[0]              
+    return True,n
+               
+               
+def fillforone(table,n,b):
+    # print('fillform at address',b)
+    #line
+    tempotable =table.copy()
+    tempotable[b[1]][b[0]]=n
+    i=b[1]
+    for j in range(9):
+        if j !=  b[0]:
+          tempotable[i][j]=0
+    j=b[0]
+    for i in range(9):
+             if i !=  b[1]:
+               tempotable[i][j]=0
+
+    sectopx = 3 * (b[0]//3)
+    sectopy = 3 * (b[1]//3)
+
+    #print('sectopx:',sectopx,'sectopy:',sectopy)
+    for xj in range(sectopx, sectopx+3):
+           for xi in range(sectopy, sectopy+3):
+               if xi !=  b[1] and xj != b[0]:
+                 tempotable[xi][xj]=0
+    
+    return tempotable
+
+def rempliall(table,n,a):
+    comment=False
+    if comment:
+        print('run rempliall',n,'with seed',a)
+    tempotable =table.copy()
+    aa=a
+    isfinish=False
+    iii=0
+    # print('b',b)
+    good=True
+    while (not isfinish) and iii <5:
+        iii+=1
+        tempotable=fillforone(tempotable,n,aa) 
+        # b=lookForPossibleTabn(tempotable,n,tabentert)
+        if comment:
+            # print("b")
+            # print(b)
+    
+            print(iii, 'tempotable',aa)
+            print(tempotable)
+        isfinish=iswrong(tempotable,n)
+        if not isfinish:
+            if comment:
+                print('rempliall not finish')
+            isfinish,aa =tobenext(tempotable,n)
+            if not isfinish:
+                if comment:
+                    print('not isfinish rempliall',aa)
+        else:
+            if comment:
+                print('rempliall impossible')
+            good=False
+    return tempotable,good
+
+
+def lookForPossibleTabn(tab,num,arr):
+    listpf=[]
+    for xi in range(9):
+        for yi in range(9):
+            if check_row(tab,num,xi) and check_col(tab,num,yi) and not  check_cell(tab,num,xi,yi) :
+                # if tabent[xi][yi] ==0:
+                    if num in arr[xi,yi]:
+                        listpf.append((yi,xi))
+            # if check_col(tab,num,yi) :
+            #     listpf.append((xi,yi))
+            # if check_cell(tab,num,xi,yi):
+            #     listpf.append((xi,yi))
+
+    return listpf
+
+
+
+
+def exBaOnCo(arr,col,n):
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    
+    for n in range(1,10):
+        #print("line",'number',n)
+        tempoboard =np.zeros((9, 9), dtype="int")
+      
+        for j in range(9):     
+            for i in range(9):
+                if tabentert[i,j]==n:
+                    tempoboard[i,j]=n
+                if n in arr[j,i]:
+                    # a.append(arr[j,i])
+                    tempoboard[j,i]=n+10
+   
+        # # seed=(4,7)
+        b=lookForPossibleTabn(tempoboard,n,arr)
+        # print("b",b)
+       
+        for seed in b:
+                tempotable,good=rempliall(tempoboard,n,seed)
+                # bb=lookForPossibleTabn(tempotable,n,arr)
+
+                if not good:
+                    # print('value excluded',n,seed)
+                    # for nri in range(len(bb)):
+                    #             grid= rectfrid(bb[nri][0],bb[nri][1],grid,col)
+
+                    grid= rectfrid(seed[0],seed[1],grid,col)
+                    return True,grid
+        
+    return False,grid
+
+def onlypossible(arr,col,n):
     grid = np.zeros(shapeRef, dtype=np.uint8)
     for n in range(1,9):
+        # print("line",'number',n)
+        for j in range(9):   
+            b=[]
+            for i in range(9):
+                if n in arr[j,i]:
+                    b.append((i,j))
+        # print("a",a)
+            if len(b)==1:
+                # print(n,"only possible in line b",b)
+                for nri in range(len(b)):
+                    grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+                return True,grid
+        # print("colonne",'number',n)
+        for j in range(9):   
+            b=[]
+            for i in range(9):
+                if n in arr[i,j]:
+                    b.append((j,i))
+        # print("a",a)
+            if len(b)==1:
+                # print(n,"only possible in colonne b",b)
+                for nri in range(len(b)):
+                    grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+                return True,grid
+        # print("carre",'number',n)
+        for j in (0,3,6):
+             for i in (0,3,6):
+                 sectopx = 3 * (j//3)
+                 sectopy = 3 * (i//3)
+                 # print('sectopx:',sectopx,'sectopy:',sectopy)
+                 b=[]
+                 for xj in range(sectopx, sectopx+3):
+                     for xi in range(sectopy, sectopy+3):
+                         # print(xj,xi,arr[xi,xj])
+                         if n in arr[xi,xj]:
+                             # print('xi:',xi,'xj:',xj)
+                             b.append((xj,xi))
+                 if len(b)==1:
+                        # print(n,"only possible in carre b",b)
+                        for nri in range(len(b)):
+                            grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+                        return True,grid
+    return False,grid
+                         
+      
+def locked_candidate(arr,col,n):
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    for n in range(1,10):
         #print("line",'number',n)
         for j in range(9):
             a=[]
@@ -1180,6 +1498,236 @@ def locked_candidate(arr,col,n):
                                      return True,grid
     return False,grid
 
+def isgood (seq):
+    pos=list(itertools.permutations([0, 1,2, 3]))
+    for p in pos:
+        ap=p[0]
+        bp=p[1]
+        cp=p[2]
+        dp=p[3]
+        final= (seq[ap][0]== seq[bp][0]) and (seq[cp][0]==seq[dp][0]) and (seq[ap][1]== seq[cp][1]) and (seq[bp][1]==seq[dp][1])
+        if final:
+            return final
+    return False
+
+def isgood6 (seq):
+    pos=list(itertools.permutations([0, 1, 2, 3, 4, 5, 6, 7, 8]))
+    for p in pos:
+        ap=p[0]
+        bp=p[1]
+        cp=p[2]
+        dp=p[3]
+        ep=p[4]
+        fp=p[5]
+        gp=p[6]
+        hp=p[7]
+        ip=p[8]
+        final= (seq[ap][0]==seq[bp][0]) and (seq[bp][0]==seq[cp][0]) and  \
+               (seq[dp][0]==seq[ep][0]) and (seq[ep][0]==seq[fp][0]) and \
+               (seq[gp][0]==seq[hp][0]) and (seq[hp][0]==seq[ip][0]) and  \
+               (seq[ap][1]==seq[dp][1]) and (seq[dp][1]==seq[gp][1]) and  \
+               (seq[bp][1]==seq[ep][1]) and (seq[ep][1]==seq[hp][1]) and \
+               (seq[cp][1]==seq[fp][1]) and (seq[fp][1]==seq[ip][1])           
+           
+        if final:
+            return True
+    return False
+  
+# s1=isgood(good)
+# print(s1)
+
+def combin4(seq, k):
+
+    p = []
+    i, imax = 0, 2**len(seq)-1
+    while i<=imax:
+        s = []
+        j, jmax = 0, len(seq)-1
+        while j<=jmax:
+            if (i>>j)&1==1:
+                if len(seq[j])>0:
+                    s.append(seq[j])
+            j += 1
+        if len(s)==k:
+            p.append(s)
+        i += 1 
+    return p
+
+
+def xwing2(arr,col,n):
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    for n in range(1,10):
+        #print("line",'number',n)
+        a=[]
+        b=[]
+        for j in range(9):
+            u=[]
+            for i in range(9):
+                #print(arr[j,i])
+                if n in arr[j,i]:
+                    u.append((i,j))
+            if len(u)==2:
+         #       print("ok for " , j)
+                a.append(j)
+                for uu in u:
+                  b.append(uu)
+        
+        ps=combin4(b,4)
+        for seq in ps:
+            s1=isgood(seq)
+            if s1:
+          #      print(s1,seq)
+                for xj in range(9):
+           #             print((seq[0][0]),xj)
+            #            print((seq[1][0]),xj)
+                        if (seq[0][0],xj) not in seq:
+                             # print(xj,arr[xj,seq[0][0]])
+                             if n in arr[xj,seq[0][0]]:
+             #                   print('good good')
+                                seq.append((seq[0][0],xj))
+                                for nri in range(len(seq)):
+                                      grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+                                return True,grid
+                        if (seq[1][0],xj) not in seq:
+                              if n in arr[xj,seq[1][0]]:
+              #                   print('good good')
+                                 seq.append((seq[1][0],xj))
+                                 for nri in range(len(seq)):
+                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+                                 return True,grid
+
+        a=[]
+        b=[]
+        for j in range(9):
+            u=[]
+            for i in range(9):
+                #print(arr[i,j],(j,i))
+                if n in arr[i,j]:
+                    u.append((j,i))
+            
+            if len(u)==2:
+                # print("ok for " , j)
+                a.append(j)
+                for uu in u:
+                    b.append(uu)
+        # print('a',a)
+        # print('b',b)
+        # print('uu',uu)
+        ps=combin4(b,4)
+        for seq in ps:
+            s1=isgood(seq)
+            if s1:
+                # print(s1,seq)
+                for xj in range(9):
+                        # print((xj,seq[0][1]))
+                        # print((xj,seq[1][1]))
+                        if (xj,seq[0][1]) not in seq:
+                             # print(xj,arr[seq[0][1],xj])
+                             if n in arr[seq[0][1],xj]:
+                                # print('good good')
+                                seq.append((xj,seq[0][1]))
+                                for nri in range(len(seq)):
+                                      grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+                                return True,grid
+                        if (xj,seq[1][1]) not in seq:
+                              if n in arr[seq[1][1],xj]:
+                                 # print('good good')
+                                 seq.append((xj,seq[1][1]))
+                                 for nri in range(len(seq)):
+                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+                                 return True,grid
+
+    return False,grid
+
+def xwing3_verif(b,grid,arr,col,n):
+    comment=False
+    ps=combin4(b,3)
+    if comment:
+        print("ps",ps)
+        for i in range(len(ps)):
+            psi=ps[i]
+            print("psi",psi)
+
+    # return True,grid
+    uu=[]
+    for seq in ps:
+        xl=[]
+        yl=[]
+        for i in range(len(seq)):
+            # print(i,seq[i])
+            for j in range(len(seq[i])):
+                yl.append(seq[i][j][1])
+                xl.append(seq[i][j][0])
+                grid= rectfrid(seq[i][j][0],seq[i][j][1],grid,col)
+            # print(i,seq[i],xl,yl)
+        if comment:
+            print('xl',set(xl),'yl',set(yl))
+        if len(set(xl))==3 and len(set(yl))==3:
+            for xi in xl:
+                for yi in range(0,9): 
+                    # print('yi',yi,'xi',xi)
+              #             print((seq[0][0]),xj)
+              #            print((seq[1][0]),xj)
+                    if yi not in yl:
+                                # print(xj,arr[xj,seq[0][0]])
+                                if n in arr[yi,xi]:
+                                  # print('good good')
+                                  uu.append((xi,yi))
+                                  for nri in range(len(uu)):
+                                        grid= rectfrid(uu[nri][0],uu[nri][1],grid,col)
+                                  return True,grid
+        else:
+          grid = np.zeros(shapeRef, dtype=np.uint8)
+    return False,grid
+
+def xwing3(arr,col,n):
+    comment=False
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    for n in range(1,9):
+        if comment:
+            print("line",'number',n)
+        b=[]
+        for j in range(9):
+            u=[]
+            for i in range(9):
+                #print(arr[j,i])
+                if n in arr[j,i]:
+                    u.append((i,j))
+            if len(u)==2 or len(u)==3:
+                # a.append((j,i))
+         #       print("ok for " , j)
+                # a.append(j)
+                # for uu in u:
+                  b.append(list(u))
+        if comment:         
+            print('b',b)
+        finish,grid=xwing3_verif(b,grid,arr,col,n)
+        if finish:
+            return True,grid 
+        if comment:
+            print("colonne",'number',n)
+        b=[]
+        grid = np.zeros(shapeRef, dtype=np.uint8)
+        for i in range(9):
+            u=[]
+            for j in range(9):
+                #print(arr[j,i])
+                if n in arr[j,i]:
+                    u.append((i,j))
+            if len(u)==2 or len(u)==3:
+                # a.append((j,i))
+         #       print("ok for " , j)
+                # a.append(j)
+                # for uu in u:
+                  b.append(list(u))
+        if comment:         
+            print('b',b)
+        finish,grid=xwing3_verif(b,grid,arr,col,n)
+        if finish:
+            return True,grid 
+    return False,grid
+
+    
     
 
 def naked_dig(arr,col,n):
@@ -1290,14 +1838,10 @@ def solvesudokuNew(arr):
     
 def solvesudoku(arr):
     l=[0,0]
-
     if not empty_loc(arr,l):
         return True
-    
     row = l[0]
-    col = l[1]
-
-                
+    col = l[1]          
     for num in range(1,10):
         if check_row(arr,num,row) and check_col(arr,num,col) and not check_cell(arr,num,row,col):
             arr[row][col] = int(num) 
