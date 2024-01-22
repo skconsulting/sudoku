@@ -16,8 +16,8 @@ import numpy as np
 import imutils
 import cv2
 import pytesseract
-import os
-from appJar import gui
+# import os
+# from appJar import gui
 import pickle
 import time
 from sudoku import Sudoku
@@ -34,7 +34,7 @@ Radomseed=False
 
 finalwidth=600
 imageToLoad='sudoku1.jpg'
-imageToLoad='cam.jpg'
+#imageToLoad='cam.jpg'
 # imageToLoad='sudoku2_td.jpg'
 
 
@@ -62,7 +62,7 @@ def find_puzzle(image, debug=False):
     blurred = cv2.GaussianBlur(gray, (7, 7), 1)
     # apply adaptive thresholding and then invert the threshold map
     thresh = cv2.adaptiveThreshold(blurred, 255,
-    		cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
     thresh = cv2.bitwise_not(thresh)
     if debug:
         cv2.imshow("Puzzle Thresh", thresh)
@@ -70,29 +70,29 @@ def find_puzzle(image, debug=False):
         #cv2.destroyAllWindows()
         cv2.destroyWindow("Puzzle Thresh")
 # find contours in the thresholded image and sort them by size in
-	# descending order
+    # descending order
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-    		cv2.CHAIN_APPROX_SIMPLE)
+            cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
-    	# initialize a contour that corresponds to the puzzle outline
+        # initialize a contour that corresponds to the puzzle outline
     puzzleCnt = None
-    	# loop over the contours
+        # loop over the contours
     for c in cnts:
-    		# approximate the contour
-    		peri = cv2.arcLength(c, True)
-    		approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-    		# if our approximated contour has four points, then we can
-    		# assume we have found the outline of the puzzle
-    		if len(approx) == 4:
-    			puzzleCnt = approx
-    			break
+            # approximate the contour
+            peri = cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+            # if our approximated contour has four points, then we can
+            # assume we have found the outline of the puzzle
+            if len(approx) == 4:
+                puzzleCnt = approx
+                break
     if puzzleCnt is None:
-    		raise Exception(("Could not find Sudoku puzzle outline. "
-    			"Try debugging your thresholding and contour steps."))
+            raise Exception(("Could not find Sudoku puzzle outline. "
+                "Try debugging your thresholding and contour steps."))
     if debug:
-    		# draw the contour of the puzzle on the image and then display
-    		# it to our screen for visualization/debugging purposes
+            # draw the contour of the puzzle on the image and then display
+            # it to our screen for visualization/debugging purposes
         output = image.copy()
         cv2.drawContours(output, [puzzleCnt], -1, (0, 255, 0), 2)
         cv2.imshow("Puzzle Outline", output)
@@ -100,13 +100,13 @@ def find_puzzle(image, debug=False):
         #cv2.destroyAllWindows()
         cv2.destroyWindow("Puzzle Outline")
 # apply a four point perspective transform to both the original
-	# image and grayscale image to obtain a top-down bird's eye view
-	# of the puzzle
+    # image and grayscale image to obtain a top-down bird's eye view
+    # of the puzzle
     puzzle = four_point_transform(image, puzzleCnt.reshape(4, 2))
     warped = four_point_transform(gray, puzzleCnt.reshape(4, 2))
-	# check to see if we are visualizing the perspective transform
+    # check to see if we are visualizing the perspective transform
     if debug:
-    		# show the output warped image (again, for debugging purposes)
+            # show the output warped image (again, for debugging purposes)
             cv2.imshow("Puzzle Transform", puzzle)
             cv2.imshow("warped", warped)
             cv2.waitKey(0)
@@ -117,32 +117,32 @@ def find_puzzle(image, debug=False):
 
 def extract_digit(cell, debug=False):
     #print("start extract digit")
-	# apply automatic thresholding to the cell and then clear any
-	# connected borders that touch the border of the cell
+    # apply automatic thresholding to the cell and then clear any
+    # connected borders that touch the border of the cell
     thresh = cv2.threshold(cell, 0, 255,
-		cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+        cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
     thresh = clear_border(thresh)
-	# check to see if we are visualizing the cell thresholding step
+    # check to see if we are visualizing the cell thresholding step
     if debug:
         cv2.imshow("Cell Thresh", thresh)
         cv2.waitKey(0)
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
-	# if no contours were found than this is an empty cell
+    # if no contours were found than this is an empty cell
     if len(cnts) == 0:
         return None
-	# otherwise, find the largest contour in the cell and create a
-	# mask for the contour
+    # otherwise, find the largest contour in the cell and create a
+    # mask for the contour
     c = max(cnts, key=cv2.contourArea)
     mask = np.zeros(thresh.shape, dtype="uint8")
     cv2.drawContours(mask, [c], -1, 255, -1)
     # compute the percentage of masked pixels relative to the total
-	# area of the image
+    # area of the image
     (h, w) = thresh.shape
     percentFilled = cv2.countNonZero(mask) / float(w * h)
-	# if less than 3% of the mask is filled then we are looking at
-	# noise and can safely ignore the contour
+    # if less than 3% of the mask is filled then we are looking at
+    # noise and can safely ignore the contour
     if percentFilled < 0.03:
         # print(percentFilled)
         # cv2.imshow("mask", mask)
@@ -150,15 +150,15 @@ def extract_digit(cell, debug=False):
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
         return None
-	# apply the mask to the thresholded cell
+    # apply the mask to the thresholded cell
     digit = cv2.bitwise_and(thresh, thresh, mask=mask)
-	# check to see if we should visualize the masking step
+    # check to see if we should visualize the masking step
     if debug:
         cv2.imshow("Digit", digit)
         cv2.waitKey(0)
         cv2.destroyWindow("Cell Thresh")
         cv2.destroyWindow("Digit")
-	# return the digit to the calling function
+    # return the digit to the calling function
     #print("end extract digit")
     return digit
 
@@ -839,11 +839,11 @@ def loop(board):
           if not ResulHelp:
               hint="only possible"
               print("only possible")
-              ResulHelp,tabhelp= onlypossible(tablist,(12,20,50),1)  
+              ResulHelp,tabhelp= onlypossible(tablist,(12,20,50))  
           if not ResulHelp:
               print("intersection removal")
               hint="intersection removal"
-              ResulHelp,tabhelp= intersecr(tablist,(12,20,50),1)
+              ResulHelp,tabhelp= intersecr(tablist,(12,20,50))
           if not ResulHelp:
               print('double')
               hint="double"
@@ -879,19 +879,19 @@ def loop(board):
           if not ResulHelp:
                         print("xwing2")
                         hint="xwing2"
-                        ResulHelp,tabhelp= xwing(tablist,(12,20,50),1,2)
+                        ResulHelp,tabhelp= xwing(tablist,(12,20,50),2)
           if not ResulHelp:
                     print("xwing3")
                     hint="xwing3"
-                    ResulHelp,tabhelp= xwing(tablist,(12,20,50),1,3)
+                    ResulHelp,tabhelp= xwing(tablist,(12,20,50),3)
           if not ResulHelp:
                    print("xwing4")
                    hint="xwing4"
-                   ResulHelp,tabhelp= xwing(tablist,(12,20,50),1,4)
+                   ResulHelp,tabhelp= xwing(tablist,(12,20,50),4)
           if not ResulHelp:
                         print("xwing5")
                         hint="xwing5"
-                        ResulHelp,tabhelp= xwing(tablist,(12,20,50),1,5)
+                        ResulHelp,tabhelp= xwing(tablist,(12,20,50),5)
           if not ResulHelp:
                         print("xywing")
                         hint="xywing"
@@ -899,7 +899,7 @@ def loop(board):
           if not ResulHelp:
                    print('excluded based on colors')    
                    hint="excluded based on colors"
-                   ResulHelp,tabhelp=exBaOnCo(tablist,(12,20,50),1)
+                   ResulHelp,tabhelp=exBaOnCo(tablist,(12,20,50))
                 
           if ResulHelp:
               print('found:',hint)
@@ -1426,7 +1426,7 @@ def lookForPossibleTabn(tab,num,arr):
     return listpf
 
 
-def intersecr(arr,col,n):
+def intersecr(arr,col):
     comment=False
     grid = np.zeros(shapeRef, dtype=np.uint8)
     for n in range(1,10):
@@ -1482,7 +1482,7 @@ def intersecr(arr,col,n):
                         
     return False,grid
 
-def exBaOnCo(arr,col,n):
+def exBaOnCo(arr,col):
     grid = np.zeros(shapeRef, dtype=np.uint8)
     
     for n in range(1,10):
@@ -1515,7 +1515,7 @@ def exBaOnCo(arr,col,n):
         
     return False,grid
 
-def onlypossible(arr,col,n):
+def onlypossible(arr,col):
     grid = np.zeros(shapeRef, dtype=np.uint8)
     for n in range(1,10):
         # print("line",'number',n)
@@ -1727,7 +1727,7 @@ def xywing(arr,col):
                     if comment:
                         print('uinit',u,(i,j))               
                     X,Y,C,T=compagnon(arr,(i,j))
-                    uu=[]
+                    # uu=[]
 
                     # for nri in range(len(T)):
                     #         grid= rectfrid(T[nri][0][0],T[nri][0][1],grid,(10,10,100))
@@ -1785,7 +1785,7 @@ def xywing(arr,col):
                             if i==t0[0]:
                                 if comment:print('startxC',X)
                                 for x in X:
-                                      x0=y[0]
+                                      x0=x[0]
                                       if comment:print('x',x,'arrx',arr[x0[1],x0[0]])
                                       if minmax(arr[x0[1],x0[0]])==common:
                                           if comment:print('goodxc','commont',common,'u',u,'i,j',(i,j))
@@ -1798,7 +1798,7 @@ def xywing(arr,col):
                                           candt=((x0x,t0[1]),(x0x+1,t0[1]),(x0x+2,t0[1]))
                                           
                                           if comment:print('candtx',candt)
-                                          uu==[]
+                                          # uu==[]
                                           for ca in candt:
                                           # return False ,grid
                                               print('ca',ca,arr[ca[1],ca[0]])
@@ -1829,7 +1829,7 @@ def xywing(arr,col):
 
                                           candt=((t0[0],y0x),(t0[0],y0x+1),(t0[0],y0x+2))
                                           if comment:print('candt',candt)
-                                          uu==[]
+                                          # uu==[]
                                           for ca in candt:
                                           # return False ,grid
                                               if comment:print('ca',ca,arr[ca[1],ca[0]])
@@ -1848,7 +1848,7 @@ def xywing(arr,col):
                          
     
 
-def xwing(arr,col,n,c):
+def xwing(arr,col,c):
     comment=False
     grid = np.zeros(shapeRef, dtype=np.uint8)
     for n in range(1,10):
@@ -2350,6 +2350,7 @@ def lookForPossible(xi,yi,tabentert):
 
 
 def lookForPxPy(xi,yi):
+    # global CaseSelected
     ArraySelected = np.zeros(shapeRef, dtype=np.uint8)
     color=(255,255,0)
     thickness=3
@@ -2389,21 +2390,21 @@ def lookForPxPy(xi,yi):
         
     return px,py,ArraySelected,CaseSelected
 
-def lookForFigSeed():    
+def lookForFigSeed(stepX,stepY):    
     # loop over the grid locations
     cellLocs=[]
     for y in range(0, 9):
-    	# initialize the current list of cell locations
+        # initialize the current list of cell locations
         row = []
         for x in range(0, 9):
             # print(x,y)
-    		# compute the starting and ending (x, y)-coordinates of the
-    		# current cell
+            # compute the starting and ending (x, y)-coordinates of the
+            # current cell
             startX = x * stepX
             startY = y * stepY
             endX = (x + 1) * stepX
             endY = (y + 1) * stepY
-    		# add the (x, y)-coordinates to our cell locations list
+            # add the (x, y)-coordinates to our cell locations list
             row.append((startX, startY, endX, endY))
         cellLocs.append(row)
     return cellLocs
@@ -2414,20 +2415,20 @@ def lookForFig(stepX,stepY,puzzleImage):
     cellLocs=[]
     board=np.zeros((9, 9), dtype="int")
     for y in range(0, 9):
-    	# initialize the current list of cell locations
+        # initialize the current list of cell locations
         row = []
         for x in range(0, 9):
             # print(x,y)
-    		# compute the starting and ending (x, y)-coordinates of the
-    		# current cell
+            # compute the starting and ending (x, y)-coordinates of the
+            # current cell
             startX = x * stepX
             startY = y * stepY
             endX = (x + 1) * stepX
             endY = (y + 1) * stepY
-    		# add the (x, y)-coordinates to our cell locations list
+            # add the (x, y)-coordinates to our cell locations list
             row.append((startX, startY, endX, endY))
             # crop the cell from the warped transform image and then
-    		# extract the digit from the cell
+            # extract the digit from the cell
             #cell = warped[startY:endY, startX:endX]
             cell =  puzzleImage[startY:endY, startX:endX]
             cell = cv2.cvtColor(cell, cv2.COLOR_BGR2GRAY)
@@ -2464,11 +2465,11 @@ def lookForFig(stepX,stepY,puzzleImage):
             # cv2.waitKey(0)
             # cv2.destroyAllWindows()
             digit = extract_digit(cell, debug=False)
-    		# verify that the digit is not empty
+            # verify that the digit is not empty
             if digit is not None:
             # if True:
-    			# resize the cell to 28x28 pixels and then prepare the
-    			# cell for classification
+                # resize the cell to 28x28 pixels and then prepare the
+                # cell for classification
                 # roi = cv2.resize(digit, (100,100 ))
     
                 # roi=255-roi
@@ -2541,11 +2542,11 @@ def lookForFig(stepX,stepY,puzzleImage):
                             cv2.destroyAllWindows()
                 # roi = img_to_array(roi)
                 # roi = np.expand_dims(roi, axis=0)
-    			# classify the digit and update the Sudoku board with the
-    			# prediction
+                # classify the digit and update the Sudoku board with the
+                # prediction
                 # pred = model.predict(roi).argmax(axis=1)[0]
                 board[y, x] = restext
-               	# add the row to our cell locations
+                   # add the row to our cell locations
         cellLocs.append(row)
     return board,cellLocs
 
@@ -2627,14 +2628,14 @@ if Radomseed :
     seed=random.randrange(1000)
     # shapeRef=(596, 600, 3)
     shapeRef=(680, 600, 3)
-    puzzle= Sudoku(3, 3,seed=seed).difficulty(0.8)
+    puzzle= Sudoku(3, 3,seed=seed).difficulty(0.4)
     board= convertBoardInv(puzzle.board)
     tabentert=board.copy()
     stepX = shapeRef[1] // 9
     stepY = shapeRef[0] // 9
     # print(stepX,stepY)
    # cellLocs = []
-    cellLocs=lookForFigSeed()
+    cellLocs=lookForFigSeed(stepX,stepY)
     imagel,tablist=lfp(tabentert)
 
 
@@ -2642,6 +2643,8 @@ elif debugN:
         (board,cellLocs,tablist) = pickle.load( open( "save.p", "rb" ) )
         # shapeRef=(631, 600, 3)
         shapeRef=(680, 600, 3)
+        stepX = shapeRef[1] // 9
+        stepY = shapeRef[0] // 9
         # imagel=lfplist()
 else:
     shapeRef=(680, 600, 3)
@@ -2649,6 +2652,8 @@ else:
     # shapeRef=(680, 600, 3)
     tabentert=board.copy()
     imagel,tablist=lfp(tabentert)
+    stepX = shapeRef[1] // 9
+    stepY = shapeRef[0] // 9
     # image = cv2.imread(imageToLoad)
     
     # # image =rotate_image(image,90)
