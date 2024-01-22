@@ -28,13 +28,14 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 
 debug=False
 solve=False
+
 debugN=True # read images or not if True read saved sata, else read image
 Radomseed=False
 
 finalwidth=600
 imageToLoad='sudoku1.jpg'
 imageToLoad='cam.jpg'
-imageToLoad='sudoku2_td.jpg'
+# imageToLoad='sudoku2_td.jpg'
 
 
 CaseSelected = False
@@ -309,7 +310,8 @@ def click_and_crop(event, x, y, flags, param):
 #                 cv2.rectangle(menus, (212,0), (340,12), black, -1)
 #                 cv2.putText(menus,'No pattern selected',(215,10),cv2.FONT_HERSHEY_PLAIN,0.7,white,1 )
 
-def lfp():
+def lfp(tabentert):
+    # global tabentert
     col=(220,128,64)
     grid = np.zeros(shapeRef, dtype=np.uint8)
     tablist={}
@@ -320,12 +322,12 @@ def lfp():
     for x in range(0,9):
        for y in range(0,9):
            if tabentert[x,y]==0:
-               listp=lookForPossible(x,y)
+               listp=lookForPossible(x,y,tabentert)
                tablist[(x,y)]=listp
                grid+=affichList(x,y,listp,col)
     return grid,tablist
 
-def lfplist():
+def lfplist(tabentert):
     col=(220,128,64)
     grid = np.zeros(shapeRef, dtype=np.uint8)
     # print( 'list all')
@@ -336,7 +338,7 @@ def lfplist():
             
            if (x,y) in tablist:
                listp=tablist[(x,y)]
-               listp1=lookForPossible(x,y)
+               listp1=lookForPossible(x,y,tabentert)
                for u in listp: 
                    if u in listp1:
                        if tabentert[x,y]==0:
@@ -371,8 +373,9 @@ def redraw():
         
         tabentertimg=affinit(tabentert,(125,201,10))
 
-        imagel=lfplist()
-        # print(imagel.shape)
+        imagel=lfplist(tabentert)
+        # print('imagel',imagel.shape)
+        # print('image',image.shape)
         if showPossible:
             imageview=cv2.add(image,imagel) ## image = source, imagel is possible
         else:
@@ -483,6 +486,7 @@ def loop(board):
     errormoins=False
     # waitforvalue=False
     image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+    # print('image',image.shape)
     #oldshape=image.shape
     #print(oldshape)
     
@@ -490,6 +494,7 @@ def loop(board):
     newheight=int(finalwidth*aspectratio)
 
     image=cv2.resize(image, (finalwidth, newheight))
+    # print('image new',image.shape)
    
     gridMenu=np.zeros((100,finalwidth,3),np.uint8)
     rempliMenu()
@@ -509,7 +514,7 @@ def loop(board):
 
     #cv2.namedWindow('image',cv2.WINDOW_NORMAL)
     cv2.namedWindow('image',cv2.WINDOW_AUTOSIZE)
-    cv2.resizeWindow('image', width, height)
+    # cv2.resizeWindow('image', width, height)
     # cv2.namedWindow("Slider2",cv2.WINDOW_NORMAL)
 
     # cv2.createTrackbar( 'Brightness','Slider2',0,100,nothing)
@@ -587,7 +592,7 @@ def loop(board):
 
         elif key == ord("l"):
                 print ('reset list possible')
-                imagel,tablist=lfp()
+                imagel,tablist=lfp(tabentert)
                 redraw()
  
 
@@ -693,7 +698,7 @@ def loop(board):
               gridVisu=np.zeros(shapeRef,np.uint8)
               tabhelp=np.zeros(shapeRef,np.uint8)
               imagel=np.ones(shapeRef,np.uint8)
-              imagel,tablist=lfp()
+              imagel,tablist=lfp(tabentert)
               redraw()
         elif key == ord("n"):                            
                print ('new blank')
@@ -705,7 +710,7 @@ def loop(board):
                gridVisu=np.zeros(shapeRef,np.uint8)
                tabhelp=np.zeros(shapeRef,np.uint8)
                imagel=np.ones(shapeRef,np.uint8)
-               imagel,tablist=lfp()
+               imagel,tablist=lfp(tabentert)
                redraw()
         elif key == ord("S"):
             print ('save')
@@ -828,13 +833,13 @@ def loop(board):
             
         elif key == ord("H"):
           #tempo,tablisttempo=lfp()
-          hint="only possible"
-          print("only possible")
-          ResulHelp,tabhelp= onlypossible(tablist,(12,20,50),1)       
+          hint="single"
+          print('single')
+          ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
           if not ResulHelp:
-              hint="single"
-              print('single')
-              ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
+              hint="only possible"
+              print("only possible")
+              ResulHelp,tabhelp= onlypossible(tablist,(12,20,50),1)  
           if not ResulHelp:
               print("intersection removal")
               hint="intersection removal"
@@ -903,9 +908,8 @@ def loop(board):
               print('nothing found')
         
         elif key == ord("J"):
-             print("xywing")
-             hint="xywing"
-             ResulHelp,tabhelp= xywing(tablist,(12,20,50))
+
+             ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
             
              if ResulHelp:
                    redraw()
@@ -981,7 +985,7 @@ def loop(board):
              ggdinit=affinit(tabresrinit,(255,255,0))
              image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
              tabentert=board.copy()
-             imagel,tablist=lfp()
+             imagel,tablist=lfp(tabentert)
              redraw()
 
         
@@ -999,7 +1003,7 @@ def loop(board):
             tabentert=board.copy()
             tabentertimg=affinit(tabentert,(125,201,10))
 
-            imagel,tablist=lfp()
+            imagel,tablist=lfp(tabentert)
             # # cv2.imshow("puzzleImage", puzzleImage)
             # # cv2.imshow("warped", warped)
             # cv2.imshow("image tempo2", imagez)
@@ -1054,7 +1058,7 @@ def loop(board):
                             tabentert=board.copy()
                             tabentertimg=affinit(tabentert,(125,201,10))
 
-                            imagel,tablist=lfp()
+                            imagel,tablist=lfp(tabentert)
                             # # cv2.imshow("puzzleImage", puzzleImage)
                             # # cv2.imshow("warped", warped)
                             # cv2.imshow("image", image)
@@ -1425,7 +1429,7 @@ def lookForPossibleTabn(tab,num,arr):
 def intersecr(arr,col,n):
     comment=False
     grid = np.zeros(shapeRef, dtype=np.uint8)
-    for n in range(1,9):
+    for n in range(1,10):
         for j in (0,3,6):
              for i in (0,3,6):
                  sectopx = 3 * (j//3)
@@ -1513,7 +1517,7 @@ def exBaOnCo(arr,col,n):
 
 def onlypossible(arr,col,n):
     grid = np.zeros(shapeRef, dtype=np.uint8)
-    for n in range(1,9):
+    for n in range(1,10):
         # print("line",'number',n)
         for j in range(9):   
             b=[]
@@ -1733,23 +1737,23 @@ def xywing(arr,col):
                     for x in X:
                           x0=x[0]
                           if comment:print('x0',x,'arr',arr[x0[1],x0[0]])
-                          resokx,commonx=lookforcommon(arr[x0[1],x0[0]],u)
+                          resokx,common=lookforcommon(arr[x0[1],x0[0]],u)
                           if comment:print('rsokx',resokx)
                           if resokx:
                                  # print('a')
                                   if comment:
-                                      print('good arrx',arr[x0[1],x0[0]],'commonx:',commonx)
+                                      print('good arrx',arr[x0[1],x0[0]],'commonx:',common)
                                       print('start Y',Y)
                                   for y in Y:
                                       y0=y[0]
                                       if comment:
                                           print('y',y,'arry',arr[y0[1],y0[0]])
-                                      if minmax(arr[y0[1],y0[0]])==commonx:
+                                      if minmax(arr[y0[1],y0[0]])==common:
                                           if comment:print('goodxy')
-                                          if commonx[0] in u:
-                                              new=commonx[1] 
+                                          if common[0] in u:
+                                              new=common[1] 
                                           else:
-                                              new=commonx[0]  
+                                              new=common[0]  
 
                                           if comment:print('new',new)
                                           cand=(x0[0],y0[1])
@@ -1773,8 +1777,8 @@ def xywing(arr,col):
                     for t in C:
                         t0=t[0]
                         if comment:print('t0',t,'arr',arr[t0[1],t0[0]])
-                        resokt,commont=lookforcommon(arr[t0[1],t0[0]],u)
-                        if comment:print('resokt',resokt,'commont',commont)
+                        resokt,common=lookforcommon(arr[t0[1],t0[0]],u)
+                        if comment:print('resokt',resokt,'commont',common)
 
                         if resokt:
                             if comment:print('(i,j)',(i,j),t0)
@@ -1783,12 +1787,12 @@ def xywing(arr,col):
                                 for x in X:
                                       x0=y[0]
                                       if comment:print('x',x,'arrx',arr[x0[1],x0[0]])
-                                      if minmax(arr[x0[1],x0[0]])==commont:
-                                          if comment:print('goodxc','commont',commont,'u',u,'i,j',(i,j))
-                                          if commont[0] in u:
-                                              new=commonx[1] 
+                                      if minmax(arr[x0[1],x0[0]])==common:
+                                          if comment:print('goodxc','commont',common,'u',u,'i,j',(i,j))
+                                          if common[0] in u:
+                                              new=common[1] 
                                           else:
-                                              new=commonx[0]  
+                                              new=common[0]  
                                           if comment:print('newt',new)
                                           x0x=3*(x0[0]//3)
                                           candt=((x0x,t0[1]),(x0x+1,t0[1]),(x0x+2,t0[1]))
@@ -1812,13 +1816,13 @@ def xywing(arr,col):
                                 for y in Y:
                                       y0=y[0]
                                       if comment:print('y',y,'arr',arr[y0[1],y0[0]])
-                                      if minmax(arr[y0[1],y0[0]])==commont:
-                                          if comment:print('goodyc','commont',commont,'u',u,'i,j',(i,j))
+                                      if minmax(arr[y0[1],y0[0]])==common:
+                                          if comment:print('goodyc','commont',common,'u',u,'i,j',(i,j))
                                           # new=arr[y0[1],y0[0]][0]
-                                          if commont[0] in u:
-                                              new=commonx[1] 
+                                          if common[0] in u:
+                                              new=common[1] 
                                           else:
-                                              new=commonx[0] 
+                                              new=common[0] 
                                           if comment:
                                               print('newt',new)
                                           y0x=3*(y0[1]//3)
@@ -1847,7 +1851,7 @@ def xywing(arr,col):
 def xwing(arr,col,n,c):
     comment=False
     grid = np.zeros(shapeRef, dtype=np.uint8)
-    for n in range(4,5):
+    for n in range(1,10):
         if comment:
             print("line",'number',n)
         b=[]
@@ -1895,90 +1899,90 @@ def xwing(arr,col,n,c):
 
 
 
-def xwingold(arr,col,n):
-    grid = np.zeros(shapeRef, dtype=np.uint8)
-    for n in range(1,10):
-        #print("line",'number',n)
-        a=[]
-        b=[]
-        for j in range(9):
-            u=[]
-            for i in range(9):
-                #print(arr[j,i])
-                if n in arr[j,i]:
-                    u.append((i,j))
-            if len(u)==2:
-         #       print("ok for " , j)
-                a.append(j)
-                for uu in u:
-                  b.append(uu)
+# def xwingold(arr,col,n):
+#     grid = np.zeros(shapeRef, dtype=np.uint8)
+#     for n in range(1,10):
+#         #print("line",'number',n)
+#         a=[]
+#         b=[]
+#         for j in range(9):
+#             u=[]
+#             for i in range(9):
+#                 #print(arr[j,i])
+#                 if n in arr[j,i]:
+#                     u.append((i,j))
+#             if len(u)==2:
+#          #       print("ok for " , j)
+#                 a.append(j)
+#                 for uu in u:
+#                   b.append(uu)
         
-        ps=combin4(b,4)
-        for seq in ps:
-            s1=isgood(seq)
-            if s1:
-          #      print(s1,seq)
-                for xj in range(9):
-           #             print((seq[0][0]),xj)
-            #            print((seq[1][0]),xj)
-                        if (seq[0][0],xj) not in seq:
-                             # print(xj,arr[xj,seq[0][0]])
-                             if n in arr[xj,seq[0][0]]:
-             #                   print('good good')
-                                seq.append((seq[0][0],xj))
-                                for nri in range(len(seq)):
-                                      grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-                                return True,grid
-                        if (seq[1][0],xj) not in seq:
-                              if n in arr[xj,seq[1][0]]:
-              #                   print('good good')
-                                 seq.append((seq[1][0],xj))
-                                 for nri in range(len(seq)):
-                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-                                 return True,grid
+#         ps=combin4(b,4)
+#         for seq in ps:
+#             s1=isgood(seq)
+#             if s1:
+#           #      print(s1,seq)
+#                 for xj in range(9):
+#            #             print((seq[0][0]),xj)
+#             #            print((seq[1][0]),xj)
+#                         if (seq[0][0],xj) not in seq:
+#                              # print(xj,arr[xj,seq[0][0]])
+#                              if n in arr[xj,seq[0][0]]:
+#              #                   print('good good')
+#                                 seq.append((seq[0][0],xj))
+#                                 for nri in range(len(seq)):
+#                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+#                                 return True,grid
+#                         if (seq[1][0],xj) not in seq:
+#                               if n in arr[xj,seq[1][0]]:
+#               #                   print('good good')
+#                                  seq.append((seq[1][0],xj))
+#                                  for nri in range(len(seq)):
+#                                        grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+#                                  return True,grid
 
-        a=[]
-        b=[]
-        for j in range(9):
-            u=[]
-            for i in range(9):
-                #print(arr[i,j],(j,i))
-                if n in arr[i,j]:
-                    u.append((j,i))
+#         a=[]
+#         b=[]
+#         for j in range(9):
+#             u=[]
+#             for i in range(9):
+#                 #print(arr[i,j],(j,i))
+#                 if n in arr[i,j]:
+#                     u.append((j,i))
             
-            if len(u)==2:
-                # print("ok for " , j)
-                a.append(j)
-                for uu in u:
-                    b.append(uu)
-        # print('a',a)
-        # print('b',b)
-        # print('uu',uu)
-        ps=combin4(b,4)
-        for seq in ps:
-            s1=isgood(seq)
-            if s1:
-                # print(s1,seq)
-                for xj in range(9):
-                        # print((xj,seq[0][1]))
-                        # print((xj,seq[1][1]))
-                        if (xj,seq[0][1]) not in seq:
-                             # print(xj,arr[seq[0][1],xj])
-                             if n in arr[seq[0][1],xj]:
-                                # print('good good')
-                                seq.append((xj,seq[0][1]))
-                                for nri in range(len(seq)):
-                                      grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-                                return True,grid
-                        if (xj,seq[1][1]) not in seq:
-                              if n in arr[seq[1][1],xj]:
-                                 # print('good good')
-                                 seq.append((xj,seq[1][1]))
-                                 for nri in range(len(seq)):
-                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-                                 return True,grid
+#             if len(u)==2:
+#                 # print("ok for " , j)
+#                 a.append(j)
+#                 for uu in u:
+#                     b.append(uu)
+#         # print('a',a)
+#         # print('b',b)
+#         # print('uu',uu)
+#         ps=combin4(b,4)
+#         for seq in ps:
+#             s1=isgood(seq)
+#             if s1:
+#                 # print(s1,seq)
+#                 for xj in range(9):
+#                         # print((xj,seq[0][1]))
+#                         # print((xj,seq[1][1]))
+#                         if (xj,seq[0][1]) not in seq:
+#                              # print(xj,arr[seq[0][1],xj])
+#                              if n in arr[seq[0][1],xj]:
+#                                 # print('good good')
+#                                 seq.append((xj,seq[0][1]))
+#                                 for nri in range(len(seq)):
+#                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+#                                 return True,grid
+#                         if (xj,seq[1][1]) not in seq:
+#                               if n in arr[seq[1][1],xj]:
+#                                  # print('good good')
+#                                  seq.append((xj,seq[1][1]))
+#                                  for nri in range(len(seq)):
+#                                        grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
+#                                  return True,grid
 
-    return False,grid
+#     return False,grid
 
 def xwing_verif(b,grid,arr,col,n,c):
     comment=False
@@ -2023,93 +2027,93 @@ def xwing_verif(b,grid,arr,col,n,c):
     return False,grid
 
 
-def xwing3_verif(b,grid,arr,col,n):
-    comment=False
-    ps=combin4(b,3)
-    if comment:
-        print("ps",ps)
-        for i in range(len(ps)):
-            psi=ps[i]
-            print("psi",psi)
+# def xwing3_verif(b,grid,arr,col,n):
+#     comment=False
+#     ps=combin4(b,3)
+#     if comment:
+#         print("ps",ps)
+#         for i in range(len(ps)):
+#             psi=ps[i]
+#             print("psi",psi)
 
-    # return True,grid
-    uu=[]
-    for seq in ps:
-        xl=[]
-        yl=[]
-        for i in range(len(seq)):
-            # print(i,seq[i])
-            for j in range(len(seq[i])):
-                yl.append(seq[i][j][1])
-                xl.append(seq[i][j][0])
-                grid= rectfrid(seq[i][j][0],seq[i][j][1],grid,col)
-            # print(i,seq[i],xl,yl)
-        if comment:
-            print('xl',set(xl),'yl',set(yl))
-        if len(set(xl))==3 and len(set(yl))==3:
-            for xi in xl:
-                for yi in range(0,9): 
-                    # print('yi',yi,'xi',xi)
-              #             print((seq[0][0]),xj)
-              #            print((seq[1][0]),xj)
-                    if yi not in yl:
-                                # print(xj,arr[xj,seq[0][0]])
-                                if n in arr[yi,xi]:
-                                  # print('good good')
-                                  uu.append((xi,yi))
-                                  for nri in range(len(uu)):
-                                        grid= rectfrid(uu[nri][0],uu[nri][1],grid,col)
-                                  return True,grid
-        else:
-          grid = np.zeros(shapeRef, dtype=np.uint8)
-    return False,grid
+#     # return True,grid
+#     uu=[]
+#     for seq in ps:
+#         xl=[]
+#         yl=[]
+#         for i in range(len(seq)):
+#             # print(i,seq[i])
+#             for j in range(len(seq[i])):
+#                 yl.append(seq[i][j][1])
+#                 xl.append(seq[i][j][0])
+#                 grid= rectfrid(seq[i][j][0],seq[i][j][1],grid,col)
+#             # print(i,seq[i],xl,yl)
+#         if comment:
+#             print('xl',set(xl),'yl',set(yl))
+#         if len(set(xl))==3 and len(set(yl))==3:
+#             for xi in xl:
+#                 for yi in range(0,9): 
+#                     # print('yi',yi,'xi',xi)
+#               #             print((seq[0][0]),xj)
+#               #            print((seq[1][0]),xj)
+#                     if yi not in yl:
+#                                 # print(xj,arr[xj,seq[0][0]])
+#                                 if n in arr[yi,xi]:
+#                                   # print('good good')
+#                                   uu.append((xi,yi))
+#                                   for nri in range(len(uu)):
+#                                         grid= rectfrid(uu[nri][0],uu[nri][1],grid,col)
+#                                   return True,grid
+#         else:
+#           grid = np.zeros(shapeRef, dtype=np.uint8)
+#     return False,grid
 
-def xwing3(arr,col,n):
-    comment=False
-    grid = np.zeros(shapeRef, dtype=np.uint8)
-    for n in range(1,9):
-        if comment:
-            print("line",'number',n)
-        b=[]
-        for j in range(9):
-            u=[]
-            for i in range(9):
-                #print(arr[j,i])
-                if n in arr[j,i]:
-                    u.append((i,j))
-            if len(u)==2 or len(u)==3:
-                # a.append((j,i))
-         #       print("ok for " , j)
-                # a.append(j)
-                # for uu in u:
-                  b.append(list(u))
-        if comment:         
-            print('b',b)
-        finish,grid=xwing3_verif(b,grid,arr,col,n)
-        if finish:
-            return True,grid 
-        if comment:
-            print("colonne",'number',n)
-        b=[]
-        grid = np.zeros(shapeRef, dtype=np.uint8)
-        for i in range(9):
-            u=[]
-            for j in range(9):
-                #print(arr[j,i])
-                if n in arr[j,i]:
-                    u.append((i,j))
-            if len(u)==2 or len(u)==3:
-                # a.append((j,i))
-         #       print("ok for " , j)
-                # a.append(j)
-                # for uu in u:
-                  b.append(list(u))
-        if comment:         
-            print('b',b)
-        finish,grid=xwing3_verif(b,grid,arr,col,n)
-        if finish:
-            return True,grid 
-    return False,grid
+# def xwing3(arr,col,n):
+#     comment=False
+#     grid = np.zeros(shapeRef, dtype=np.uint8)
+#     for n in range(1,9):
+#         if comment:
+#             print("line",'number',n)
+#         b=[]
+#         for j in range(9):
+#             u=[]
+#             for i in range(9):
+#                 #print(arr[j,i])
+#                 if n in arr[j,i]:
+#                     u.append((i,j))
+#             if len(u)==2 or len(u)==3:
+#                 # a.append((j,i))
+#          #       print("ok for " , j)
+#                 # a.append(j)
+#                 # for uu in u:
+#                   b.append(list(u))
+#         if comment:         
+#             print('b',b)
+#         finish,grid=xwing3_verif(b,grid,arr,col,n)
+#         if finish:
+#             return True,grid 
+#         if comment:
+#             print("colonne",'number',n)
+#         b=[]
+#         grid = np.zeros(shapeRef, dtype=np.uint8)
+#         for i in range(9):
+#             u=[]
+#             for j in range(9):
+#                 #print(arr[j,i])
+#                 if n in arr[j,i]:
+#                     u.append((i,j))
+#             if len(u)==2 or len(u)==3:
+#                 # a.append((j,i))
+#          #       print("ok for " , j)
+#                 # a.append(j)
+#                 # for uu in u:
+#                   b.append(list(u))
+#         if comment:         
+#             print('b',b)
+#         finish,grid=xwing3_verif(b,grid,arr,col,n)
+#         if finish:
+#             return True,grid 
+#     return False,grid
 
     
     
@@ -2335,7 +2339,7 @@ def affinit(tabref,col):
     
     return grid
 
-def lookForPossible(xi,yi):
+def lookForPossible(xi,yi,tabentert):
     listpf=[]
     for num in range(1,10):
         if check_row(tabentert,num,xi) and check_col(tabentert,num,yi) and not check_cell(tabentert,num,xi,yi):
@@ -2567,6 +2571,7 @@ def convertBoardInv(board):
 
 
 def loadimage(imageToLoad):
+    global cellLocs
     print("[INFO] loading input image...",imageToLoad)
     image = cv2.imread(imageToLoad)
     
@@ -2576,6 +2581,7 @@ def loadimage(imageToLoad):
     newheight=int(finalwidth*aspectratio)
     
     image=cv2.resize(image, (finalwidth, newheight))
+    
     # cv2.imshow("image", image)
     
     (puzzleImage, warped) = find_puzzle(image, debug=debug)
@@ -2584,7 +2590,7 @@ def loadimage(imageToLoad):
     newheight=int(finalwidth*aspectratio)
     warped=cv2.resize(warped, (finalwidth, newheight))
     puzzleImage=cv2.resize(puzzleImage, (finalwidth, newheight))
-    image=cv2.resize(image, (finalwidth, newheight))
+    image=cv2.resize(image, (shapeRef[0],shapeRef[1]))
     
     
     # cv2.imshow("puzzleImage", puzzleImage)
@@ -2609,7 +2615,8 @@ def loadimage(imageToLoad):
    # cellLocs = []
 
     board,cellLocs=lookForFig(stepX,stepY,puzzleImage)
-    tablist={}
+    tabentert=board.copy()
+    imagel,tablist=lfp(tabentert)
     pickle.dump( (board,cellLocs,tablist), open( "save.p", "wb" ) )
     return board,cellLocs
 
@@ -2618,20 +2625,30 @@ def loadimage(imageToLoad):
 
 if Radomseed :
     seed=random.randrange(1000)
-    shapeRef=(596, 600, 3)
+    # shapeRef=(596, 600, 3)
+    shapeRef=(680, 600, 3)
     puzzle= Sudoku(3, 3,seed=seed).difficulty(0.8)
     board= convertBoardInv(puzzle.board)
+    tabentert=board.copy()
     stepX = shapeRef[1] // 9
     stepY = shapeRef[0] // 9
+    # print(stepX,stepY)
    # cellLocs = []
     cellLocs=lookForFigSeed()
+    imagel,tablist=lfp(tabentert)
+
 
 elif debugN:
         (board,cellLocs,tablist) = pickle.load( open( "save.p", "rb" ) )
-        shapeRef=(631, 600, 3)
+        # shapeRef=(631, 600, 3)
+        shapeRef=(680, 600, 3)
+        # imagel=lfplist()
 else:
+    shapeRef=(680, 600, 3)
     board,cellLocs=loadimage(imageToLoad)
-    shapeRef=(631, 600, 3)
+    # shapeRef=(680, 600, 3)
+    tabentert=board.copy()
+    imagel,tablist=lfp(tabentert)
     # image = cv2.imread(imageToLoad)
     
     # # image =rotate_image(image,90)
