@@ -29,11 +29,13 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 debug=False
 solve=False
 
-debugN=True # read images or not if True read saved sata, else read image
+# debugN=False # read images or not if True read saved sata, else read image
+readJPG=False # read images or not if True  read image else read saved sata
 Radomseed=False
 
 finalwidth=600
 imageToLoad='sudoku1.jpg'
+imageToLoad='expert.jpg'
 #imageToLoad='cam.jpg'
 # imageToLoad='sudoku2_td.jpg'
 
@@ -448,7 +450,7 @@ def visiuNum(valueVisu,toggleVisu):
                 if (x,y) in tablist:
                     listp=tablist[(x,y)]
                     if valueVisu in listp:
-                        gridVisu+=visui(x,y,(50,50,50))                        
+                        gridVisu+=visui(x,y,(80,120,80))                        
     #redraw()
 def  togdou(toggleDou):
     global tablist,gridpair
@@ -782,7 +784,6 @@ def loop(board):
                     lastpx=px
                     lastpy=py
                     cv2.rectangle(gridMenu, (400,27), (590,58), (20,30,10), -1)
-     
                     if solvedFTrue[px,py]==value:
                         errormoins=True
                         cv2.putText(gridMenu,'ERROR -'+': '+chr(key) ,(400,50), cv2.FONT_HERSHEY_PLAIN,2,(0,0,250),1)
@@ -908,9 +909,7 @@ def loop(board):
               print('nothing found')
         
         elif key == ord("J"):
-
              ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
-            
              if ResulHelp:
                    redraw()
              else:
@@ -979,16 +978,34 @@ def loop(board):
            #  plus=False
              if value == 3014656:
                  value = 0
+             boardold=board.copy()
              board=pluslmos(px,py,value,board)
              value = -1
-             tabresrinit=board.copy()
-             ggdinit=affinit(tabresrinit,(255,255,0))
-             image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
-             tabentert=board.copy()
-             imagel,tablist=lfp(tabentert)
-             redraw()
+             resultSolved,solved=solvesudokuNew(board)
+             if resultSolved:
+                 solvedF=np.zeros((9, 9), dtype="int")
+                 for i in range(9):
+                    for j in range(9):
+                        if solved[i,j]==board[i,j]:
+                            solvedF[i,j]=0
+                        else:
+                            solvedF[i,j]=solved[i,j]
+                 solvedFTrue=np.zeros((9, 9), dtype="int")
+                 for i in range(9):
+                   for j in range(9):
+                       solvedFTrue[i,j]=solved[i,j]
+                 tabresrinit=board.copy()
+                 ggdinit=affinit(tabresrinit,(255,255,0))
+                 image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+                 tabentert=board.copy()
+                 imagel,tablist=lfp(tabentert)
+                 redraw()
+             else:
+                  print("NO SOLUTION")
+                  board=boardold.copy()
+                   # print(solvedF[i,j])
 
-        
+
         webcamV1=False 
         if webcamV1:
         # webcamV1=False 
@@ -1767,6 +1784,7 @@ def xywing(arr,col):
                                                 # uu.append((y0[0],y0[1]))
                                                 # for nri in range(len(uu)):
                                                 #   grid= rectfrid(uu[nri][0],uu[nri][1],grid,(10,10,100))
+                                                print(new)
                                                 grid= rectfrid(i,j,grid,col1)
                                                 grid= rectfrid(cand[0],cand[1],grid,col)
                                                 return True,grid
@@ -1783,37 +1801,40 @@ def xywing(arr,col):
                         if resokt:
                             if comment:print('(i,j)',(i,j),t0)
                             if i==t0[0]:
-                                if comment:print('startxC',X)
+                                if comment:print('startxC',X,'common',common)
                                 for x in X:
-                                      x0=x[0]
-                                      if comment:print('x',x,'arrx',arr[x0[1],x0[0]])
-                                      if minmax(arr[x0[1],x0[0]])==common:
-                                          if comment:print('goodxc','commont',common,'u',u,'i,j',(i,j))
-                                          if common[0] in u:
-                                              new=common[1] 
-                                          else:
-                                              new=common[0]  
-                                          if comment:print('newt',new)
-                                          x0x=3*(x0[0]//3)
-                                          candt=((x0x,t0[1]),(x0x+1,t0[1]),(x0x+2,t0[1]))
-                                          
-                                          if comment:print('candtx',candt)
-                                          # uu==[]
-                                          for ca in candt:
-                                          # return False ,grid
-                                              print('ca',ca,arr[ca[1],ca[0]])
-                                              if new in arr[ca[1],ca[0]]:
-                                                  if comment:print('arrtnew',arr[ca[1],ca[0]],'u',u,'new',new)
-                                                  # uu.append((ca[0],ca[1]))
-                                                  # for nri in range(len(uu)):
-                                                  #     grid= rectfrid(uu[nri][0],uu[nri][1],grid,col)
-                                                  grid= rectfrid(i,j,grid,col1)
-                                                  # grid= rectfrid(cand[0],cand[1],grid,col)
-                                                  grid= rectfrid(ca[0],ca[1],grid,col)
-                                                  return True,grid                                             
+                                    if x not in C:
+                                          x0=x[0]
+                                          if comment:print('x',x,'arrx',arr[x0[1],x0[0]])
+                                          if minmax(arr[x0[1],x0[0]])==common:
+                                              if comment:print('goodxc','commont',common,'u',u,'i,j',(i,j))
+                                              if common[0] in u:
+                                                  new=common[1] 
+                                              else:
+                                                  new=common[0]  
+                                              if comment:print('newt',new)
+                                              x0x=3*(x0[0]//3)
+                                              candt=((x0x,t0[1]),(x0x+1,t0[1]),(x0x+2,t0[1]))
+                                              
+                                              if comment:print('candtx',candt)
+                                              # uu==[]
+                                              for ca in candt:
+                                              # return False ,grid
+                                                  print('ca',ca,arr[ca[1],ca[0]])
+                                                  if new in arr[ca[1],ca[0]]:
+                                                      if comment:print('arrtnew',arr[ca[1],ca[0]],'u',u,'new',new)
+                                                      # uu.append((ca[0],ca[1]))
+                                                      # for nri in range(len(uu)):
+                                                      #     grid= rectfrid(uu[nri][0],uu[nri][1],grid,col)
+                                                      grid= rectfrid(i,j,grid,col1)
+                                                      # grid= rectfrid(cand[0],cand[1],grid,col)
+                                                      grid= rectfrid(ca[0],ca[1],grid,col)
+                                                      print(new)
+                                                      return True,grid                                             
                             else:                                                
-                                if comment:print('startyC',Y)
+                                if comment:print('startyC',Y,'common',common,'C',C)
                                 for y in Y:
+                                    if y not in C:
                                       y0=y[0]
                                       if comment:print('y',y,'arr',arr[y0[1],y0[0]])
                                       if minmax(arr[y0[1],y0[0]])==common:
@@ -1841,6 +1862,7 @@ def xywing(arr,col):
                                                   #     grid= rectfrid(uu[nri][0],uu[nri][1],grid,(10,100,10))
                                                   grid= rectfrid(i,j,grid,col1)
                                                   grid= rectfrid(ca[0],ca[1],grid,col)
+                                                  print(new)
                                                   # for nri in range(len(T)):
                                                   #         grid= rectfrid(T[nri][0][0],T[nri][0][1],grid,(10,10,100))
                                                   return True,grid                              
@@ -2639,14 +2661,7 @@ if Radomseed :
     imagel,tablist=lfp(tabentert)
 
 
-elif debugN:
-        (board,cellLocs,tablist) = pickle.load( open( "save.p", "rb" ) )
-        # shapeRef=(631, 600, 3)
-        shapeRef=(680, 600, 3)
-        stepX = shapeRef[1] // 9
-        stepY = shapeRef[0] // 9
-        # imagel=lfplist()
-else:
+elif readJPG:
     shapeRef=(680, 600, 3)
     board,cellLocs=loadimage(imageToLoad)
     # shapeRef=(680, 600, 3)
@@ -2654,6 +2669,21 @@ else:
     imagel,tablist=lfp(tabentert)
     stepX = shapeRef[1] // 9
     stepY = shapeRef[0] // 9
+        # (board,cellLocs,tablist) = pickle.load( open( "save.p", "rb" ) )
+        # # shapeRef=(631, 600, 3)
+        # shapeRef=(680, 600, 3)
+        # stepX = shapeRef[1] // 9
+        # stepY = shapeRef[0] // 9
+        # # imagel=lfplist()
+else:
+    (board,cellLocs,tablist) = pickle.load( open( "save.p", "rb" ) )
+    # shapeRef=(631, 600, 3)
+    shapeRef=(680, 600, 3)
+    stepX = shapeRef[1] // 9
+    stepY = shapeRef[0] // 9
+    # imagel=lfplist()
+    
+  
     # image = cv2.imread(imageToLoad)
     
     # # image =rotate_image(image,90)
