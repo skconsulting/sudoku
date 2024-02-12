@@ -13,14 +13,14 @@ environment: my-env
 from imutils.perspective import four_point_transform
 from skimage.segmentation import clear_border
 import numpy as np
-import imutils
+import imutils ##scikit-image
 import cv2
 import pytesseract
 # import os
 # from appJar import gui
 import pickle
 import time
-from sudoku import Sudoku
+from sudoku import Sudoku ##py-sudoku
 import random
 import itertools
 
@@ -29,14 +29,13 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 debug=False
 solve=False
 
-# debugN=False # read images or not if True read saved sata, else read image
-readJPG=False # read images or not if True  read image else read saved sata
+readJPG=True # read images or not if True  read image else read saved sata
 Radomseed=False
 
 finalwidth=600
 imageToLoad='sudoku1.jpg'
-imageToLoad='expert.jpg'
-#imageToLoad='cam.jpg'
+#imageToLoad='expert.jpg'
+imageToLoad='cam.jpg'
 # imageToLoad='sudoku2_td.jpg'
 
 
@@ -114,6 +113,7 @@ def find_puzzle(image, debug=False):
             cv2.waitKey(0)
             cv2.destroyWindow("Puzzle Transform")
             cv2.destroyWindow("warped")
+    print("[INFO] puzzle ready")
     return (puzzle, warped)
 
 
@@ -546,8 +546,8 @@ def loop(board):
         # n new blank
         # q or Q: quit   
         # r reset all
-        # S save to save.p
-        # s solve
+        # s save to save.p
+        # S solve
         # v + "number" visualise all possible "number"
         # x write for Simple Sudoku
         # w webcam
@@ -714,14 +714,14 @@ def loop(board):
                imagel=np.ones(shapeRef,np.uint8)
                imagel,tablist=lfp(tabentert)
                redraw()
-        elif key == ord("S"):
+        elif key == ord("s"):
             print ('save')
             #boardu,cellLocs=loadimage('cam.jpg')
             #boarddummy,cellLocs=lookForFig(stepX,stepY,puzzleImage)
             pickle.dump( (tabentert,cellLocsSave,tablist), open( "save.p", "wb" ) )
             # pickle.dump( tablist), open( "save.p", "wb" ) )
 
-        elif key == ord("s"):
+        elif key == ord("S"):
                        print ('solve')
                        CaseSelected=False
                        showPossible=False
@@ -736,7 +736,7 @@ def loop(board):
                            solvedF=np.zeros((9, 9), dtype="int")
                            for i in range(9):
                               for j in range(9):
-                                  if solved[i,j]==board[i,j]:
+                                  if solved[i,j]==tabentert[i,j]:
                                       solvedF[i,j]=0
                                   else:
                                       solvedF[i,j]=solved[i,j]
@@ -749,7 +749,7 @@ def loop(board):
                        # tabresrinit=board.copy()
                        # tabentert=board.copy()
                        #sprint(board)
-                       ggdinit=aff(board,solvedF,(255,255,0))
+                       ggdinit=aff(tabentert,solvedF,(255,0,0))
                        image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
                        gridVisu=np.zeros(shapeRef,np.uint8)
                        gridpair=np.zeros(shapeRef,np.uint8)
@@ -974,7 +974,7 @@ def loop(board):
             redraw()
             
         if mos and value >0 and CaseSelected:
-             print('I add to source', value)
+             # print('I add to source', value)
            #  plus=False
              if value == 3014656:
                  value = 0
