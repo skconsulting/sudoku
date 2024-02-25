@@ -29,7 +29,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 debug=False
 solve=False
 
-readJPG=True # read images or not if True  read image else read saved sata
+readJPG=False # read images or not if True  read image else read saved sata
 Radomseed=False
 
 finalwidth=600
@@ -664,10 +664,11 @@ def loop(board):
                 visu=True
                 # waitforvalue=True
                 visuActive = not(visuActive)
-                if visuActive:
-                    cv2.putText(gridMenu,'visu : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-                else:
-                    cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                # print("visuActive",visuActive)
+                # if visuActive:
+                #     cv2.putText(gridMenu,'visua : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                # else:
+                #     cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
                 # print ('visualize only some values',visuActive)
                 moins=False
@@ -764,7 +765,12 @@ def loop(board):
                 if visu:
                     valueVisu=value
                     value=-1
-                    print ('visu', valueVisu)
+                    # print ('visu', valueVisu)
+                    # if visuActive:
+                    #     cv2.putText(gridMenu,'visuv : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                    # else:
+                    #     cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+                    # redraw()
                     # visu=True
                 if plus:
                     print ('plus', value)
@@ -929,8 +935,10 @@ def loop(board):
             cv2.rectangle(gridMenu, (390,60), (550,90), (20,20,10), -1)
             cv2.putText(gridMenu,'visu : '+ ' ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
-            if visuActive and (valueVisu in range(1,9)):
+            if visuActive and (valueVisu in range(1,10)):
                 cv2.putText(gridMenu,'visu : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+            else:
+                cv2.putText(gridMenu,'              ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
                 #•cv2.putText(gridMenu,'visu : '+ '7' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
             redraw()
@@ -971,6 +979,7 @@ def loop(board):
             
         if color and CaseSelected:
             gridColor=rectfrid(py,px,gridColor,(100,0,0))
+            color=False
             redraw()
             
         if mos and value >0 and CaseSelected:
@@ -1092,13 +1101,14 @@ def loop(board):
                         else:
                             cv2.destroyWindow("Captured")
                             print('captured not good')
-                            finl=True
+                            
                             #webcam = cv2.VideoCapture(0)
 
 
 
                     elif key_ == ord('q'):
                         webcam.release()
+                        finl=False
                         print("Camera off.")
                         cv2.destroyWindow("Capturing")
                         #cv2.destroyAllWindows()
