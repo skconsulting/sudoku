@@ -572,10 +572,11 @@ def cvalue():
        # waitforvalue=True
        visuActive = not(visuActive)
        # print("visuActive",visuActive)
-       # if visuActive:
-       #     cv2.putText(gridMenu,'visua : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-       # else:
-       #     cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+       if visuActive:
+            cv2.rectangle(gridMenu, (390,60), (550,90), (20,20,10), -1)
+            cv2.putText(gridMenu,'visu : '+ ' ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+       else:
+            cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
        # print ('visualize only some values',visuActive)
        moins=False
@@ -586,7 +587,7 @@ def cvalue():
        # tabhelp=np.zeros(shapeRef,np.uint8)
   
 def cwebcam():
-    global webcamV,image,tabentertimg
+    global webcamV,image,tabentertimg,tabentert,imagel,tablist,board,cellLocs,tabresrinit,ggdinit,solved
 
     finl=True
     print('start webcam')
@@ -616,7 +617,6 @@ def cwebcam():
                 cv2.imshow("Captured", img_)
                 print('type "y" if correct')
                 key_ = cv2.waitKey(0)
-
                 
                 if key_ == ord('y'): 
                     webcam.release()
@@ -1161,10 +1161,12 @@ def loop(board):
               print('nothing found')
         
         elif key == ord("J"):
-             ResulHelp,tabhelp=naked_dig(tablist,(12,20,50),1)
-             if ResulHelp:
+            print("xywing")
+            hint="xywing"
+            ResulHelp,tabhelp=xywing(tablist,(12,20,50))
+            if ResulHelp:
                    redraw()
-             else:
+            else:
                    print('nothing found')
     
    
@@ -1920,22 +1922,21 @@ def compagnon(arr,b):
     T=[]
     x=b[0]
     y=b[1]
+    sectopx = 3 * (x//3)
+    sectopy = 3 * (y//3)
 
     #line
     for i in range(9):
-        if len (arr[i,x])==2 and i !=y:
-            T.append(((x,i),arr[i,x]))
-            
+        if len (arr[i,x])==2 and i not in (sectopy,sectopy+1,sectopy+2):
+            T.append(((x,i),arr[i,x]))        
             Y.append(((x,i),arr[i,x]))
     #col
     for i in range(9):
-        if len (arr[y,i])==2 and i !=x:
+        if len (arr[y,i])==2 and i not in (sectopx,sectopx+1,sectopx+2):
               X.append(((i,y),arr[y,i]))
               T.append(((i,y),arr[y,i]))
     #carre
 
-    sectopx = 3 * (x//3)
-    sectopy = 3 * (y//3)
     # print('sectopx:',sectopx,'sectopy:',sectopy)
     for xj in range(sectopx, sectopx+3):
         for xi in range(sectopy, sectopy+3):
@@ -1948,159 +1949,178 @@ def compagnon(arr,b):
     # print('Ccompagnon',C)
     return X,Y,C,T
 
-def minmax(z):
-    a=z[0]
-    b=z[1]
-    return(min(a,b),max(a,b))
+# def minmax(z):
+#     a=z[0]
+#     b=z[1]
+#     return(min(a,b),max(a,b))
+
+# def lookforcommonold(a,u):
+#     if a[0]==u[0]:
+#         return True,minmax((a[1],u[1]))
+#     if a[0]==u[1]:
+#         return True,minmax((a[1],u[0])) 
+#     if a[1]==u[0]:
+#         return True,minmax((a[0],u[1])) 
+#     if a[1]==u[1]:
+#         return True,minmax((a[0],u[0])) 
+#     return False ,(0,0)
 
 def lookforcommon(a,u):
+    if a ==u:
+        return False ,0,0
     if a[0]==u[0]:
-        return True,minmax((a[1],u[1]))
+        return True,u[1],a[1]
     if a[0]==u[1]:
-        return True,minmax((a[1],u[0])) 
+        return True,u[0], a[1]
     if a[1]==u[0]:
-        return True,minmax((a[0],u[1])) 
+        return True, u[1], a[0]
     if a[1]==u[1]:
-        return True,minmax((a[0],u[0])) 
-    return False ,(0,0)
+        return True, u[0],a[0] 
+    return False ,0,0
     
+
+                         
 def xywing(arr,col):
+
     comment=False
-    u=[]
+    if comment: print('start xywing')
     col1=(100,10,10)
+    col2=(10,100,10)
+    col3=(100,100,100)
+    # col4=(100,10,100)
+    # col5=(10,100,100)
+
     for i in range(0,9):
         for j in range(0,9):
+    # grid = np.zeros(shapeRef, dtype=np.uint8)
+    # for i in range(1,2):
+    #     for j in range(0,1):
                 if len (arr[j,i])==2:
                     grid = np.zeros(shapeRef, dtype=np.uint8)
-                    u= arr[j,i]
+                    pivot= arr[j,i]
+
+
                     if comment:
-                        print('uinit',u,(i,j))               
+                        print('pivot',pivot,(i,j))   
+                        grid= rectfrid(i,j,grid,col3)
+                        # return True,grid
                     X,Y,C,T=compagnon(arr,(i,j))
-                    # uu=[]
-
-                    # for nri in range(len(T)):
-                    #         grid= rectfrid(T[nri][0][0],T[nri][0][1],grid,(10,10,100))
-                    # grid= rectfrid(i,j,grid,(100,10,10))
-                    if comment: print('start X',X)
+                    if comment: print('recherche pince 1 en X',X)
                     #line
-                    for x in X:
-                          x0=x[0]
-                          if comment:print('x0',x,'arr',arr[x0[1],x0[0]])
-                          resokx,common=lookforcommon(arr[x0[1],x0[0]],u)
-                          if comment:print('rsokx',resokx)
+                    for x in X :
+                        
+                          pince1l=x[0]
+                          pince1d=x[1]
+                          # if comment:
+                          #     print('pivot ',pivot,'location pince1',pince1l,'data pince 1',pince1d)
+                          resokx,otherFig,candForElim=lookforcommon(pince1d,pivot)
                           if resokx:
-                                 # print('a')
-                                  if comment:
-                                      print('good arrx',arr[x0[1],x0[0]],'commonx:',common)
-                                      print('start Y',Y)
-                                  for y in Y:
-                                      y0=y[0]
+                              if comment:
+                                  print('rsokx',resokx,'pivot loc', (i,j),'pivot', pivot,' pince1 loc:',pince1l, 'pince data',pince1d)
+                                  print('otherFig ',otherFig,'candForElim ',candForElim)
+                                  # grid= rectfrid(pince1l[0],pince1l[1],grid,col1)
+                                  # return True,grid
+
+                              if comment: print('recherche pince 2 en Y',Y)
+                              for y in Y:
+                                      pince2l=y[0]
+                                      pince2d=y[1]
                                       if comment:
-                                          print('y',y,'arry',arr[y0[1],y0[0]])
-                                      if minmax(arr[y0[1],y0[0]])==common:
-                                          if comment:print('goodxy')
-                                          if common[0] in u:
-                                              new=common[1] 
-                                          else:
-                                              new=common[0]  
-
-                                          if comment:print('new',new)
-                                          cand=(x0[0],y0[1])
-                                          if comment:print('cand',cand,'arrcand',arr[cand[1],cand[0]])
-                                          # return False ,grid
-                                  
-                                          if new in arr[cand[1],cand[0]]:
-                                                # uu==[]
-                                                # print('arry',arr[y0[1],y0[0]],'u',u)
-                                                # uu.append((x0[0],x0[1]))
-                                                # uu.append((y0[0],y0[1]))
-                                                # for nri in range(len(uu)):
-                                                #   grid= rectfrid(uu[nri][0],uu[nri][1],grid,(10,10,100))
-                                                print(new)
-                                                grid= rectfrid(i,j,grid,col1)
-                                                grid= rectfrid(cand[0],cand[1],grid,col)
-                                                return True,grid
-                    #carre
-                    if comment:
-                        print('uinitcarre',u,(i,j))
-                        print('C',C)
-                    for t in C:
-                        t0=t[0]
-                        if comment:print('t0',t,'arr',arr[t0[1],t0[0]])
-                        resokt,common=lookforcommon(arr[t0[1],t0[0]],u)
-                        if comment:print('resokt',resokt,'commont',common)
-
-                        if resokt:
-                            if comment:print('(i,j)',(i,j),t0)
-                            if i==t0[0]:
-                                if comment:print('startxC',X,'common',common)
-                                for x in X:
-                                    if x not in C:
-                                          x0=x[0]
-                                          if comment:print('x',x,'arrx',arr[x0[1],x0[0]])
-                                          if minmax(arr[x0[1],x0[0]])==common:
-                                              if comment:print('goodxc','commont',common,'u',u,'i,j',(i,j))
-                                              if common[0] in u:
-                                                  new=common[1] 
-                                              else:
-                                                  new=common[0]  
-                                              if comment:print('newt',new)
-                                              x0x=3*(x0[0]//3)
-                                              candt=((x0x,t0[1]),(x0x+1,t0[1]),(x0x+2,t0[1]))
+                                          print('y',y)
+                                      if otherFig in pince2d:
+                                          if candForElim in pince2d:
+                                              candLocation=(pince1l[0],pince2l[1])
+                                              if candForElim in arr[candLocation[1],candLocation[0]]:
+                                                  if comment:
+                                                      print('goody from x', 'y', y, 'otherfig ',otherFig )
+                                                      grid= rectfrid(pince1l[0],pince1l[1],grid,col1)
+                                                      grid= rectfrid(pince2l[0],pince2l[1],grid,col2)
+                                                      print('candLocation',candLocation)
+                                                      
+                                                  grid= rectfrid(candLocation[0],candLocation[1],grid,col)
+                                                  grid= rectfrid(i,j,grid,col3)
+                                                  return True,grid
+                              # if comment: print('recherche pince 2 en C',C)
                                               
-                                              if comment:print('candtx',candt)
-                                              # uu==[]
-                                              for ca in candt:
-                                              # return False ,grid
-                                                  print('ca',ca,arr[ca[1],ca[0]])
-                                                  if new in arr[ca[1],ca[0]]:
-                                                      if comment:print('arrtnew',arr[ca[1],ca[0]],'u',u,'new',new)
-                                                      # uu.append((ca[0],ca[1]))
-                                                      # for nri in range(len(uu)):
-                                                      #     grid= rectfrid(uu[nri][0],uu[nri][1],grid,col)
-                                                      grid= rectfrid(i,j,grid,col1)
-                                                      # grid= rectfrid(cand[0],cand[1],grid,col)
-                                                      grid= rectfrid(ca[0],ca[1],grid,col)
-                                                      print(new)
-                                                      return True,grid                                             
-                            else:                                                
-                                if comment:print('startyC',Y,'common',common,'C',C)
-                                for y in Y:
-                                    if y not in C:
-                                      y0=y[0]
-                                      if comment:print('y',y,'arr',arr[y0[1],y0[0]])
-                                      if minmax(arr[y0[1],y0[0]])==common:
-                                          if comment:print('goodyc','commont',common,'u',u,'i,j',(i,j))
-                                          # new=arr[y0[1],y0[0]][0]
-                                          if common[0] in u:
-                                              new=common[1] 
-                                          else:
-                                              new=common[0] 
-                                          if comment:
-                                              print('newt',new)
-                                          y0x=3*(y0[1]//3)
 
-                                          candt=((t0[0],y0x),(t0[0],y0x+1),(t0[0],y0x+2))
-                                          if comment:print('candt',candt)
-                                          # uu==[]
-                                          for ca in candt:
-                                          # return False ,grid
-                                              if comment:print('ca',ca,arr[ca[1],ca[0]])
-                                  
-                                              if new in arr[ca[1],ca[0]]:
-                                                  if comment:print('arrtnew',arr[ca[1],ca[0]],'u',u,'new',new)
-                                                  # uu.append((ca[0],ca[1]))
-                                                  # for nri in range(len(uu)):
-                                                  #     grid= rectfrid(uu[nri][0],uu[nri][1],grid,(10,100,10))
-                                                  grid= rectfrid(i,j,grid,col1)
-                                                  grid= rectfrid(ca[0],ca[1],grid,col)
-                                                  print(new)
-                                                  # for nri in range(len(T)):
-                                                  #         grid= rectfrid(T[nri][0][0],T[nri][0][1],grid,(10,10,100))
-                                                  return True,grid                              
-    return False ,grid
-                         
+                    if comment: 
+                             print('recherche pince 1 en Carre',C)
+                    for c in C:
+                        pince1l=c[0]
+                        pince1d=c[1]
+                        # if comment:
+                        #     print('pivot ',pivot,'location pince1',pince1l,'data pince 1',pince1d)
+                        resokx,otherFig,candForElim=lookforcommon(pince1d,pivot)
+                        if resokx:
+                            if comment:
+                                print('rsokx',resokx,'pivot loc', (i,j),'pivot', pivot,' pince1 loc:',pince1l, 'pince data',pince1d)
+                                print('otherFig ',otherFig,'candForElim ',candForElim)
+                                # grid= rectfrid(pince1l[0],pince1l[1],grid,col1)
+                                # return True,grid
+
+                            if comment: print('recherche pince 2 en Y',Y)
+                            for y in Y:
+                                    pince2l=y[0]
+                                    pince2d=y[1]
+                                    if pince2l[0]!= pince1l[0]:
+                                        # if comment:
+                                        #     print('y',y)
+                                        if otherFig in pince2d:
+                                            if candForElim in pince2d:
+                                                x0x=3*(pince2l[1]//3)
+                                                candt=((pince1l[0],x0x),(pince1l[0],x0x+1),(pince1l[0],x0x+2))
+                                                if comment:
+                                                  print('candidate goody from carre ', 'y:', y, 'otherfig ',otherFig)
+                                                  print('candt',candt)
     
+    
+                                                for cand in candt:
+                                                    if candForElim in arr[cand[1],cand[0]]:
+                                                        if comment:
+                                                            print("cand ",cand)
+                                                            grid= rectfrid(pince1l[0],pince1l[1],grid,col1)
+                                                            grid= rectfrid(pince2l[0],pince2l[1],grid,col2)
+                                                            # grid= rectfrid(candt[0][0],candt[0][1],grid,col4)
+                                                            # grid= rectfrid(candt[1][0],candt[1][1],grid,col4)
+                                                            # grid= rectfrid(candt[2][0],candt[2][1],grid,col4)
+                                                        grid= rectfrid(cand[0],cand[1],grid,col)
+                                                        grid= rectfrid(i,j,grid,col3)
+                                                        return True,grid
+                                                
+                            if comment: print('recherche pince 2 en X',X)
+                            for x in X:
+                                         pince2l=x[0]
+                                         pince2d=x[1]
+                                         if pince2l[1]!= pince1l[1]:
+
+                                             if otherFig in pince2d:
+                                                 if candForElim in pince2d:
+                                                     x0x=3*(pince2l[0]//3)
+                                                     candt=((x0x,pince1l[1]),(x0x+1,pince1l[1]),(x0x+2,pince1l[1]))
+
+                                                     if comment:
+                                                       print('candidate goodx from carre ', 'x:', x, 'otherfig ',otherFig)
+                                                       print('candt',candt)
+                                                       # return True,grid
+                                                     for cand in candt:
+                                                         # print( arr[cand[1],cand[0]])
+                                                         # return True ,grid
+                                                         if candForElim in arr[cand[1],cand[0]]:
+                                                             if comment:
+                                                                 # print('goodx from carre', 'x', x, 'otherfig ',otherFig ,"candt ",candt)
+                                                                 print("cand ",cand)
+                                                                 grid= rectfrid(pince1l[0],pince1l[1],grid,col1)
+                                                                 grid= rectfrid(pince2l[0],pince2l[1],grid,col2)
+                                                                 # grid= rectfrid(candt[0][0],candt[0][1],grid,col4)
+                                                                 # grid= rectfrid(candt[1][0],candt[1][1],grid,col4)
+                                                                 # grid= rectfrid(candt[2][0],candt[2][1],grid,col4)
+                                                             grid= rectfrid(cand[0],cand[1],grid,col)
+                                                             grid= rectfrid(i,j,grid,col3)
+                                                             return True,grid
+                                                
+                                                   
+    return False ,grid
+                           
 
 def xwing(arr,col,c):
     comment=False
@@ -2153,90 +2173,6 @@ def xwing(arr,col,c):
 
 
 
-# def xwingold(arr,col,n):
-#     grid = np.zeros(shapeRef, dtype=np.uint8)
-#     for n in range(1,10):
-#         #print("line",'number',n)
-#         a=[]
-#         b=[]
-#         for j in range(9):
-#             u=[]
-#             for i in range(9):
-#                 #print(arr[j,i])
-#                 if n in arr[j,i]:
-#                     u.append((i,j))
-#             if len(u)==2:
-#          #       print("ok for " , j)
-#                 a.append(j)
-#                 for uu in u:
-#                   b.append(uu)
-        
-#         ps=combin4(b,4)
-#         for seq in ps:
-#             s1=isgood(seq)
-#             if s1:
-#           #      print(s1,seq)
-#                 for xj in range(9):
-#            #             print((seq[0][0]),xj)
-#             #            print((seq[1][0]),xj)
-#                         if (seq[0][0],xj) not in seq:
-#                              # print(xj,arr[xj,seq[0][0]])
-#                              if n in arr[xj,seq[0][0]]:
-#              #                   print('good good')
-#                                 seq.append((seq[0][0],xj))
-#                                 for nri in range(len(seq)):
-#                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-#                                 return True,grid
-#                         if (seq[1][0],xj) not in seq:
-#                               if n in arr[xj,seq[1][0]]:
-#               #                   print('good good')
-#                                  seq.append((seq[1][0],xj))
-#                                  for nri in range(len(seq)):
-#                                        grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-#                                  return True,grid
-
-#         a=[]
-#         b=[]
-#         for j in range(9):
-#             u=[]
-#             for i in range(9):
-#                 #print(arr[i,j],(j,i))
-#                 if n in arr[i,j]:
-#                     u.append((j,i))
-            
-#             if len(u)==2:
-#                 # print("ok for " , j)
-#                 a.append(j)
-#                 for uu in u:
-#                     b.append(uu)
-#         # print('a',a)
-#         # print('b',b)
-#         # print('uu',uu)
-#         ps=combin4(b,4)
-#         for seq in ps:
-#             s1=isgood(seq)
-#             if s1:
-#                 # print(s1,seq)
-#                 for xj in range(9):
-#                         # print((xj,seq[0][1]))
-#                         # print((xj,seq[1][1]))
-#                         if (xj,seq[0][1]) not in seq:
-#                              # print(xj,arr[seq[0][1],xj])
-#                              if n in arr[seq[0][1],xj]:
-#                                 # print('good good')
-#                                 seq.append((xj,seq[0][1]))
-#                                 for nri in range(len(seq)):
-#                                       grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-#                                 return True,grid
-#                         if (xj,seq[1][1]) not in seq:
-#                               if n in arr[seq[1][1],xj]:
-#                                  # print('good good')
-#                                  seq.append((xj,seq[1][1]))
-#                                  for nri in range(len(seq)):
-#                                        grid= rectfrid(seq[nri][0],seq[nri][1],grid,col)
-#                                  return True,grid
-
-#     return False,grid
 
 def xwing_verif(b,grid,arr,col,n,c):
     comment=False
@@ -2280,97 +2216,7 @@ def xwing_verif(b,grid,arr,col,n,c):
           grid = np.zeros(shapeRef, dtype=np.uint8)
     return False,grid
 
-
-# def xwing3_verif(b,grid,arr,col,n):
-#     comment=False
-#     ps=combin4(b,3)
-#     if comment:
-#         print("ps",ps)
-#         for i in range(len(ps)):
-#             psi=ps[i]
-#             print("psi",psi)
-
-#     # return True,grid
-#     uu=[]
-#     for seq in ps:
-#         xl=[]
-#         yl=[]
-#         for i in range(len(seq)):
-#             # print(i,seq[i])
-#             for j in range(len(seq[i])):
-#                 yl.append(seq[i][j][1])
-#                 xl.append(seq[i][j][0])
-#                 grid= rectfrid(seq[i][j][0],seq[i][j][1],grid,col)
-#             # print(i,seq[i],xl,yl)
-#         if comment:
-#             print('xl',set(xl),'yl',set(yl))
-#         if len(set(xl))==3 and len(set(yl))==3:
-#             for xi in xl:
-#                 for yi in range(0,9): 
-#                     # print('yi',yi,'xi',xi)
-#               #             print((seq[0][0]),xj)
-#               #            print((seq[1][0]),xj)
-#                     if yi not in yl:
-#                                 # print(xj,arr[xj,seq[0][0]])
-#                                 if n in arr[yi,xi]:
-#                                   # print('good good')
-#                                   uu.append((xi,yi))
-#                                   for nri in range(len(uu)):
-#                                         grid= rectfrid(uu[nri][0],uu[nri][1],grid,col)
-#                                   return True,grid
-#         else:
-#           grid = np.zeros(shapeRef, dtype=np.uint8)
-#     return False,grid
-
-# def xwing3(arr,col,n):
-#     comment=False
-#     grid = np.zeros(shapeRef, dtype=np.uint8)
-#     for n in range(1,9):
-#         if comment:
-#             print("line",'number',n)
-#         b=[]
-#         for j in range(9):
-#             u=[]
-#             for i in range(9):
-#                 #print(arr[j,i])
-#                 if n in arr[j,i]:
-#                     u.append((i,j))
-#             if len(u)==2 or len(u)==3:
-#                 # a.append((j,i))
-#          #       print("ok for " , j)
-#                 # a.append(j)
-#                 # for uu in u:
-#                   b.append(list(u))
-#         if comment:         
-#             print('b',b)
-#         finish,grid=xwing3_verif(b,grid,arr,col,n)
-#         if finish:
-#             return True,grid 
-#         if comment:
-#             print("colonne",'number',n)
-#         b=[]
-#         grid = np.zeros(shapeRef, dtype=np.uint8)
-#         for i in range(9):
-#             u=[]
-#             for j in range(9):
-#                 #print(arr[j,i])
-#                 if n in arr[j,i]:
-#                     u.append((i,j))
-#             if len(u)==2 or len(u)==3:
-#                 # a.append((j,i))
-#          #       print("ok for " , j)
-#                 # a.append(j)
-#                 # for uu in u:
-#                   b.append(list(u))
-#         if comment:         
-#             print('b',b)
-#         finish,grid=xwing3_verif(b,grid,arr,col,n)
-#         if finish:
-#             return True,grid 
-#     return False,grid
-
-    
-    
+        
 
 def naked_dig(arr,col,n):
     grid = np.zeros(shapeRef, dtype=np.uint8)
@@ -2908,7 +2754,14 @@ elif readJPG:
         # stepY = shapeRef[0] // 9
         # # imagel=lfplist()
 else:
-    (board,cellLocs,tablist) = pickle.load( open( cwd+"/save.p", "rb" ) )
+    try:
+        (board,cellLocs,tablist) = pickle.load( open( cwd+"/save.p", "rb" ) )
+    except:
+            (board,cellLocs) = pickle.load( open( cwd+"/save.p", "rb" ) )
+            shapeRef=(680, 600, 3)
+            tabentert=board.copy()
+            imagel,tablist=lfp(tabentert)
+            
     # shapeRef=(631, 600, 3)
     shapeRef=(680, 600, 3)
     stepX = shapeRef[1] // 9
