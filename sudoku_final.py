@@ -223,7 +223,7 @@ def click_and_crop(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         # cv2.rectangle(menus, (150,12), (370,32), black, -1)
         # posrc=0
-        print ("x:",x,"y:",y)
+        # print ("x:",x,"y:",y)
         if  x> 0 and y > 0 and x<30 and y<30:
                print ( 'this is 1')
                cchiffre(1)
@@ -285,95 +285,7 @@ def click_and_crop(event, x, y, flags, param):
         #print('this is double click')
         dbclick=True
         doubleclick()
-        # cv2.rectangle(gridMenu, (360,0), (390,30), (100,100,100), -1)
-        # cv2.putText(gridMenu,'+' ,(370,20), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
-        # cv2.rectangle(gridMenu, (400,0), (430,30), (100,100,100), -1)
-        # cv2.putText(gridMenu,'-' ,(410,20), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
-        # cv2.rectangle(gridMenu, (440,0), (470,30), (100,100,100), -1)
-        # cv2.putText(gridMenu,'v' ,(450,20), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
-
-
-#         if  x> zoneverticalgauche[0][0] and y > zoneverticalgauche[0][1] and x<zoneverticalgauche[1][0] and y<zoneverticalgauche[1][1]:
-#             print ( 'this is in menu')
-#             labelfound=True
-
-#         if  x> zoneverticaldroite[0][0] and y > zoneverticaldroite[0][1] and x<zoneverticaldroite[1][0] and y<zoneverticaldroite[1][1]:
-#             print ('this is in menu')
-#             labelfound=True
-
-#         if  x> zonehorizontal[0][0] and y > zonehorizontal[0][1] and x<zonehorizontal[1][0] and y<zonehorizontal[1][1]:
-#             print ('this is in menu')
-#             labelfound=True
-
-#         if x>posxdel and x<posxdel+10 and y>posydel and y< posydel+10:
-#             print ('this is suppress')
-#             # suppress()
-#             labelfound=True
-
-#         if x>posxquit and x<posxquit+10 and y>posyquit and y< posyquit+10:
-#             print ('this is quit')
-#             quitl=True
-#             labelfound=True
-
-#         if x>posxdellast and x<posxdellast+10 and y>posydellast and y< posydellast+10:
-#             print ('this is delete last')
-#             labelfound=True
-#             # dellast()
-
-#         if x>posxdelall and x<posxdelall+10 and y>posydelall and y< posydelall+10:
-#             print ('this is delete all')
-#             labelfound=True
-#             # delall()
-
-#         if x>posxcomp and x<posxcomp+10 and y>posycomp and y< posycomp+10:
-#             print ('this is completed for all')
-#             labelfound=True
-#             # completed(imagename,dirpath_patient)
-
-#         if x>posxreset and x<posxreset+10 and y>posyreset and y< posyreset+10:
-#             print( 'this is reset')
-#             labelfound=True
-#             # reseted()
-#         if x>posxvisua and x<posxvisua+10 and y>posyvisua and y< posyvisua+10:
-#             print ('this is visua')
-#             labelfound=True
-#             # visua()
-#         if x>posxeraseroi and x<posxeraseroi+10 and y>posyeraseroi and y< posyeraseroi+10:
-#             print ('this is erase roi')
-#             labelfound=True
-#             # eraseroi(imagename,dirpath_patient)
-
-#         if x>posxlastp and x<posxlastp+10 and y>posylastp and y< posylastp+10:
-#             print ('this is last point')
-#             labelfound=True
-#             # closepolygon()
-
-
-
-#         if not labelfound:
-#             print ('add point',pattern)
-#             if len(pattern)>0:
-# #                print 'len pattern >0'
-#                 print ('fxs,x0',fxs,x0new)
-# #                global fxs,x0new,y0new
-#                 xnew=int((x+x0new)/fxs)
-#                 ynew=int((y+y0new)/fxs)
-#                 print (x,y,xnew,ynew)
-#                 numeropoly=tabroinumber[pattern][scannumber]
-#                 print ('length last pattent',len(tabroi[pattern][scannumber][numeropoly]))
-#                 tabroi[pattern][scannumber][numeropoly].append((xnew, ynew))
-#                 print( numeropoly, tabroi[pattern][scannumber][numeropoly])
-#                 cv2.rectangle(images[scannumber], (xnew,ynew),
-#                               (xnew,ynew), classifc[pattern], 1)
-
-#                 for l in range(0,len(tabroi[pattern][scannumber][numeropoly])-1):
-#                     cv2.line(images[scannumber], (tabroi[pattern][scannumber][numeropoly][l][0],tabroi[pattern][scannumber][numeropoly][l][1]),
-#                               (tabroi[pattern][scannumber][numeropoly][l+1][0],tabroi[pattern][scannumber][numeropoly][l+1][1]), classifc[pattern], 1)
-#                     l+=1
-# #                cv2.imshow('images',images[scannumber])
-#             else:
-#                 cv2.rectangle(menus, (212,0), (340,12), black, -1)
-#                 cv2.putText(menus,'No pattern selected',(215,10),cv2.FONT_HERSHEY_PLAIN,0.7,white,1 )
+ 
 
 def lfp(tabentert):
     # global tabentert
@@ -552,8 +464,8 @@ def cplus():
     redraw()
 
 def cmoins():
-  global mos,value,plus,visu,moins,dou
-  print ('moins1')
+  global mos,value,plus,visu,moins,dou,gridMenu
+  print ('moins')
   mos=False
   value=-1
   moins=True
@@ -566,7 +478,7 @@ def cmoins():
   redraw()
   
 def cvalue():
-       global mos,value,plus,visu,moins,dou,visuActive,gridpair
+       global mos,value,plus,visu,moins,dou,visuActive,gridpair,gridMenu
        value=-1
        visu=True
        # waitforvalue=True
@@ -663,7 +575,8 @@ def cwebcam():
 
 def cchiffre(n):
     global command,mos,plus,visu,moins,dou,valueVisu,numsaved,errormoins,tabhelp
-    global lastpx,lastpy,tablistSaved,value,CaseSelected,toggleDou
+    global lastpx,lastpy,tablistSaved,value,CaseSelected,toggleDou,gridMenu,visuActive
+    # print('cchiffre',px,py,moins,plus)
     
     if visu:
         valueVisu=n
@@ -687,8 +600,8 @@ def cchiffre(n):
         value=n
         # waitforvalue=False
     if moins:
-        if px >0 and py>0:
-            print ('moins', n)
+        if px >-1 and py>-1:
+            print ('moins ', n)
             value=n
             numsaved= n
             plus=False
@@ -915,52 +828,14 @@ def loop(board):
                 
         elif key == ord("+") :
             cplus()
-                # print ('plus')
-                # command=''
-                # mos=False
-                # value=-1
-                # plus=True
-                # visu=False
-                # moins=False
-                # dou=False
-                
-                # cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
-                # cv2.putText(gridMenu,'+' ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-                # redraw()
+
                 
         elif key == ord("-"):
             cmoins()
-                # print ('moins')
-                # mos=False
-                # value=-1
-                # moins=True
-                # plus=False
-                # visu=False
-                # dou=False
-                # cv2.rectangle(gridMenu, (400,27), (590,58), (20,30,10), -1)
-                # #◄cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
-                # cv2.putText(gridMenu,'-' ,(450,50), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-                # redraw()
-                
+    
         elif key == ord("v"):
             cvalue()
-                # value=-1
-                # visu=True
-                # # waitforvalue=True
-                # visuActive = not(visuActive)
-                # # print("visuActive",visuActive)
-                # # if visuActive:
-                # #     cv2.putText(gridMenu,'visua : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-                # # else:
-                # #     cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-
-                # # print ('visualize only some values',visuActive)
-                # moins=False
-                # plus=False
-                # dou=False
-                # gridpair=np.zeros(shapeRef,np.uint8)
-                # redraw()
-                # # tabhelp=np.zeros(shapeRef,np.uint8)
+    
         
         elif key == ord("d"):                     
                 dou=True
@@ -1055,7 +930,7 @@ def loop(board):
            
                     
         elif key == 26:
-                print('ctrl z)')
+                print('ctrl z',lastpy,lastpx)
                 if lastpy>-1 and lastpx>-1:
                     
                     if plus:
@@ -1063,6 +938,7 @@ def loop(board):
                         tabentert[lastpx,lastpy]=0
                         tablist=tablistSaved.copy()
                     if moins:
+                        print('I undo moins',px,py)
                         # px=lastpx
                         # py=lastpy
                         moinslundo(lastpx,lastpy,numsaved)
@@ -1261,83 +1137,10 @@ def loop(board):
                   print("NO SOLUTION")
                   board=boardold.copy()
                    # print(solvedF[i,j])
- 
-                
+              
         if webcamV:
             cwebcam()
-        #     finl=True
-        #     print('start webcam')
-        #     webcamV=False
-        #     webcam = cv2.VideoCapture(0)
 
-        # #try:
-    
-        #     while finl:
-        #             check, frame = webcam.read()
-        #             # print(check) #prints true as long as the webcam is running
-        #             # print(frame) #prints matrix values of each framecd 
-        #             #cv2.destroyWindow("image")
-        #             cv2.imshow("Capturing", frame)
-        #             key_ = cv2.waitKey(1)
-        #             if key_ == ord('s'): 
-
-        #                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        #                 # print("Converted RGB image to grayscale...")
-        #                 # print("Resizing image to 28x28 scale...")
-        #                 img_ = cv2.resize(gray,(640,480))
-        #                 # print("Resized...")
-        #                 img_resized = cv2.imwrite(filename=cwd+'/cam.jpg', img=img_)
-        #                 print("Image saved!")
-       
-        #                 #image = cv2.imread('cam.jpg')
-        #                 cv2.imshow("Captured", img_)
-        #                 print('type "y" if correct')
-        #                 key_ = cv2.waitKey(0)
-
-                        
-        #                 if key_ == ord('y'): 
-        #                     webcam.release()
-        #                     board,cellLocs=loadimage('cam.jpg')
-        #                     cv2.destroyWindow("Capturing")
-        #                     cv2.destroyWindow("Captured")
-                      
-                        
-        #                     tabresrinit=board.copy()
-        #                     ggdinit=affinit(tabresrinit,(255,255,0))
-        #                     image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
-        #                     tabentert=board.copy()
-        #                     tabentertimg=affinit(tabentert,(125,201,10))
-
-        #                     imagel,tablist=lfp(tabentert)
-        #                     # # cv2.imshow("puzzleImage", puzzleImage)
-        #                     # # cv2.imshow("warped", warped)
-        #                     # cv2.imshow("image", image)
-        #                     # cv2.setMouseCallback("image", click_and_crop)
-        #                     #cv2.waitKey()
-        #                     # cv2.destroyWindow("image")
-        #                     resultsolved,solved=solvesudokuNew(board)
-        #                     solvedFTrue=np.zeros((9, 9), dtype="int")
-        #                     for i in range(9):
-        #                        for j in range(9):
-        #                            solvedFTrue[i,j]=solved[i,j]
-        #                     redraw()
-        #                     break
-        #                 else:
-        #                     cv2.destroyWindow("Captured")
-        #                     print('captured not good')
-                            
-        #                     #webcam = cv2.VideoCapture(0)
-
-
-
-        #             elif key_ == ord('q'):
-        #                 webcam.release()
-        #                 finl=False
-        #                 print("Camera off.")
-        #                 cv2.destroyWindow("Capturing")
-        #                 #cv2.destroyAllWindows()
-
-        
         
 def overlay(arr,num,img,cx,cy):
     no = -1
