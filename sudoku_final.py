@@ -223,7 +223,7 @@ def click_and_crop(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         # cv2.rectangle(menus, (150,12), (370,32), black, -1)
         # posrc=0
-        # print ("x:",x,"y:",y)
+        print ("x:",x,"y:",y)
         if  x> 0 and y > 0 and x<30 and y<30:
                print ( 'this is 1')
                cchiffre(1)
@@ -266,11 +266,29 @@ def click_and_crop(event, x, y, flags, param):
         elif  x> 480 and y > 0 and x<510 and y<30:
                   # print ( 'this is -')
                   # command='+'
-                  cwebcam()
+                  cdouble()
         elif  x> 570 and y > 0 and x<600 and y<30:
             quitl=True
             print ('on quitte', quitl)
             cv2.destroyAllWindows()
+        elif x>0 and x<30 and y >40 and y <70:
+            print('tart webcam')
+            cwebcam()
+
+        elif x>35 and x<65 and y >40 and y <70:
+             print('save webcam')
+             sawebcam()
+
+        elif x>70 and x<100 and y >40 and y <70:
+            print('ok webcam')
+            okwebcam()
+
+        elif x>105 and x<135 and y >40 and y <70:
+           print('nok webcam')
+           nokwebcam()
+        elif x>140 and x<170 and y >40 and y <70:
+            print('quit webcam')
+            qwebcam()
          
         else:
        #             labelfound=True
@@ -342,9 +360,20 @@ def rempliMenu()    :
     cv2.rectangle(gridMenu, (440,0), (470,30), (100,100,100), -1)
     cv2.putText(gridMenu,'v' ,(450,20), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
     cv2.rectangle(gridMenu, (480,0), (510,30), (100,100,100), -1)
-    cv2.putText(gridMenu,'w' ,(490,20), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
+    cv2.putText(gridMenu,'d' ,(490,20), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
     cv2.rectangle(gridMenu, (570,0), (600,30), (100,100,100), -1)
     cv2.putText(gridMenu,'q' ,(580,20), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
+    
+    cv2.rectangle(gridMenu, (0,40), (30,70), (100,100,100), -1)
+    cv2.putText(gridMenu,'wc' ,(0,60), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
+    cv2.rectangle(gridMenu, (35,40), (65,70), (100,100,100), -1)
+    cv2.putText(gridMenu,'swe' ,(35,60), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
+    cv2.rectangle(gridMenu, (70,40), (100,70), (100,100,100), -1)
+    cv2.putText(gridMenu,'ok' ,(70,60), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
+    cv2.rectangle(gridMenu, (105,40), (135,70), (100,100,100), -1)
+    cv2.putText(gridMenu,'nok' ,(105,60), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
+    cv2.rectangle(gridMenu, (140,40), (170,70), (100,100,100), -1)
+    cv2.putText(gridMenu,'qw' ,(140,60), cv2.FONT_HERSHEY_PLAIN,1.0,(255,255,255),1)
     # cv2.rectangle(gridMenu, ((i*30)+5*i,50), ((i*30)+5*i+50,80), (100+i*10,256-(i*20),100), -1)
     # cv2.putText(gridMenu,str(i+1) ,((i*30)+5*i+5,15), cv2.FONT_HERSHEY_PLAIN,0.7,(240,200,180),1)
     
@@ -357,7 +386,9 @@ def redraw():
         if not (resultSolved) or errormoins:
             print('error ',"resultSolved",resultSolved," errormoins ",errormoins)
             if lastpx>-1 and lastpy>-1:
-                griderror+=visui(lastpx,lastpy,(0,0,255))             
+                griderror+=visui(lastpx,lastpy,(0,0,255))    
+        # else:   
+        #         print('NO error ')
         
         tabentertimg=affinit(tabentert,(125,201,10))
 
@@ -483,25 +514,108 @@ def cvalue():
        visu=True
        # waitforvalue=True
        visuActive = not(visuActive)
-       # print("visuActive",visuActive)
-       if visuActive:
-            cv2.rectangle(gridMenu, (390,60), (550,90), (20,20,10), -1)
-            cv2.putText(gridMenu,'visu : '+ ' ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-       else:
-            cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+       #print("visuActive",visuActive)
+       # if visuActive:
+       #      cv2.rectangle(gridMenu, (390,65), (550,95), (20,20,10), -1)
+       #      cv2.putText(gridMenu,'visu : '+ ' ' ,(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+       # else:
+       #      cv2.putText(gridMenu,'           ' ,(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
        # print ('visualize only some values',visuActive)
        moins=False
        plus=False
        dou=False
        gridpair=np.zeros(shapeRef,np.uint8)
+       visugra(valueVisu,visuActive)
        redraw()
        # tabhelp=np.zeros(shapeRef,np.uint8)
-  
+def sawebcam():
+    print('s webcam')
+    global frame
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # print("Converted RGB image to grayscale...")
+    # print("Resizing image to 28x28 scale...")
+    img_ = cv2.resize(gray,(640,480))
+    # print("Resized...")
+    cv2.imwrite(filename=cwd+'/cam.jpg', img=img_)
+    print("Image saved!")
+
+    #image = cv2.imread('cam.jpg')
+    cv2.imshow("Captured", img_)
+    print('type "y" if correct')
+    
+def nokwebcam():
+    cv2.destroyWindow("Captured")
+    print('captured not good')
+    
+def qwebcam():
+    global webcamLaunched,finl,webcam
+    webcam.release()
+    webcamLaunched=False
+    finl=False
+    print("Camera off.")
+    cv2.destroyWindow("Capturing")
+    #cv2.destroyAllWindows()
+
+    
+def okwebcam():
+    global webcam,image,board,cellLocs,tabresrinit,tabentert,imagel,tablist,resultsolved,solvedFTrue,solved,ggdinit
+    global tabentertimg,webcamLaunched,finl
+    print('ok webcam')
+    if webcamLaunched:
+        webcam.release()
+        board,cellLocs=loadimage('cam.jpg')
+        cv2.destroyWindow("Capturing")
+        cv2.destroyWindow("Captured")
+    
+    
+        tabresrinit=board.copy()
+        ggdinit=affinit(tabresrinit,(255,255,0))
+        image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+        tabentert=board.copy()
+        tabentertimg=affinit(tabentert,(125,201,10))
+    
+        imagel,tablist=lfp(tabentert)
+        # # cv2.imshow("puzzleImage", puzzleImage)
+        # # cv2.imshow("warped", warped)
+        # cv2.imshow("image", image)
+        # cv2.setMouseCallback("image", click_and_crop)
+        #cv2.waitKey()
+        # cv2.destroyWindow("image")
+        resultsolved,solved=solvesudokuNew(board)
+        solvedFTrue=np.zeros((9, 9), dtype="int")
+        for i in range(9):
+           for j in range(9):
+               solvedFTrue[i,j]=solved[i,j]
+        redraw()
+        finl=False
+    else:
+        print('need webcam launched')
+
+
+def cdouble():
+    global dou,toggleDou,moins,visu,plus,visuActive,gridMenu
+    dou=True
+    toggleDou = not(toggleDou)
+    print ('visualize double',toggleDou)
+    moins=False
+    plus=False
+    visu=False
+    visuActive=False
+    # print(tabentert)
+    cv2.rectangle(gridMenu, (400,60), (550,90), (20,30,10), -1)
+    togdou(toggleDou)
+    if toggleDou:
+        cv2.putText(gridMenu,'double' ,(410,85), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)          
+    dou=False
+    redraw()
+
 def cwebcam():
     global webcamV,image,tabentertimg,tabentert,imagel,tablist,board,cellLocs,tabresrinit,ggdinit,solved
+    global webcamLaunched,webcam,finl,frame
 
     finl=True
+    webcamLaunched=True
     print('start webcam')
     webcamV=False
     webcam = cv2.VideoCapture(0)
@@ -516,62 +630,21 @@ def cwebcam():
             cv2.imshow("Capturing", frame)
             key_ = cv2.waitKey(1)
             if key_ == ord('s'): 
-
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                # print("Converted RGB image to grayscale...")
-                # print("Resizing image to 28x28 scale...")
-                img_ = cv2.resize(gray,(640,480))
-                # print("Resized...")
-                cv2.imwrite(filename=cwd+'/cam.jpg', img=img_)
-                print("Image saved!")
-
-                #image = cv2.imread('cam.jpg')
-                cv2.imshow("Captured", img_)
-                print('type "y" if correct')
+                sawebcam()
                 key_ = cv2.waitKey(0)
-                
                 if key_ == ord('y'): 
-                    webcam.release()
-                    board,cellLocs=loadimage('cam.jpg')
-                    cv2.destroyWindow("Capturing")
-                    cv2.destroyWindow("Captured")
-              
-                
-                    tabresrinit=board.copy()
-                    ggdinit=affinit(tabresrinit,(255,255,0))
-                    image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
-                    tabentert=board.copy()
-                    tabentertimg=affinit(tabentert,(125,201,10))
-
-                    imagel,tablist=lfp(tabentert)
-                    # # cv2.imshow("puzzleImage", puzzleImage)
-                    # # cv2.imshow("warped", warped)
-                    # cv2.imshow("image", image)
-                    # cv2.setMouseCallback("image", click_and_crop)
-                    #cv2.waitKey()
-                    # cv2.destroyWindow("image")
-                    resultsolved,solved=solvesudokuNew(board)
-                    solvedFTrue=np.zeros((9, 9), dtype="int")
-                    for i in range(9):
-                       for j in range(9):
-                           solvedFTrue[i,j]=solved[i,j]
-                    redraw()
+                    okwebcam()
                     break
                 else:
-                    cv2.destroyWindow("Captured")
-                    print('captured not good')
-                    
+                    nokwebcam()
+                  
                     #webcam = cv2.VideoCapture(0)
 
 
 
             elif key_ == ord('q'):
-                webcam.release()
-                finl=False
-                print("Camera off.")
-                cv2.destroyWindow("Capturing")
-                #cv2.destroyAllWindows()
-
+                qwebcam()
+              
 
 def cchiffre(n):
     global command,mos,plus,visu,moins,dou,valueVisu,numsaved,errormoins,tabhelp
@@ -638,23 +711,37 @@ def cchiffre(n):
         toggleDou=False
         dou=False
         value=-1
+        visugra(valueVisu,visuActive)
         # print('visu',valueVisu,visuActive)
-        cv2.rectangle(gridMenu, (390,60), (550,90), (20,20,10), -1)
-        cv2.putText(gridMenu,'visu : '+ ' ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+        # cv2.putText(gridMenu,'visu : '+ ' ' ,(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
-        if visuActive and (valueVisu in range(1,10)):
-            cv2.putText(gridMenu,'visu : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-        else:
-            cv2.putText(gridMenu,'              ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+        # if visuActive and (valueVisu in range(1,10)):
+        #     cv2.rectangle(gridMenu, (390,70), (550,90), (20,20,10), -1)
+        #     cv2.putText(gridMenu,'visu : '+ str(valueVisu) ,(410,95), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+        # else:
+        #     cv2.putText(gridMenu,'              ' ,(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
             #•cv2.putText(gridMenu,'visu : '+ '7' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
 
         redraw()
-         
+def visugra(valueVisu,visuActive):
+  global gridMenu
+  
+  cv2.rectangle(gridMenu, (390,65), (550,95), (20,20,10), -1)
+  # cv2.putText(gridMenu,'visu : '+ ' ' ,(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+  if visuActive :
+      cv2.putText(gridMenu,'visu : ',(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+      if (valueVisu in range(1,10)):
+      # cv2.putText(gridMenu,'visu : '+ ' ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+          cv2.putText(gridMenu,'visu : '+ str(valueVisu) ,(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+  else:
+      cv2.putText(gridMenu,'              ' ,(410,90), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+      #•cv2.putText(gridMenu,'visu : '+ '7' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+      
     
 def loop(board):
     global quitl,lookForList,plus,imagel,tabentert,value,tablist,moins,visu,gridVisu,gridMenu,ArraySelected,CaseSelected,px,py,gridpair,tabentertimg,showPossible
     global image,tabresrinit,valueVisu,visuActive,toggleDou,lastpx,lastpy,tabhelp,errormoins,solvedFTrue,gridColor
-    global command,mos,dou
+    global command,mos,dou,webcamLaunched
     global key,numsaved,tablistSaved,webcamV,tabentertimg
 
     ggdinit=affinit(board,(255,255,0))
@@ -670,6 +757,7 @@ def loop(board):
     showPossible=True
     visuActive=False
     color=False
+    webcamLaunched=False
     value=-1
     lastpx=-1
     lastpy=-1
@@ -837,13 +925,9 @@ def loop(board):
             cvalue()
     
         
-        elif key == ord("d"):                     
-                dou=True
-                toggleDou = not(toggleDou)
-                print ('visualize double',toggleDou)
-                moins=False
-                plus=False
-                visu=False
+        elif key == ord("d"):   
+            cdouble()                  
+             
         
         elif key == ord("m"):                     
                  mos=True
@@ -1029,6 +1113,13 @@ def loop(board):
                    print('excluded based on colors')    
                    hint="excluded based on colors"
                    ResulHelp,tabhelp=exBaOnCo(tablist,(12,20,50))
+          if not ResulHelp:
+                   for nk in range(2,6):
+                       print('hidden ',nk)    
+                       hint="hidden  "+str(nk)
+                       ResulHelp,tabhelp=hidden_pair(tablist,nk,(12,20,50))
+                       if ResulHelp:
+                           break
                 
           if ResulHelp:
               print('found:',hint)
@@ -1037,11 +1128,15 @@ def loop(board):
               print('nothing found')
         
         elif key == ord("J"):
-            print("xywing")
-            hint="xywing"
-            ResulHelp,tabhelp=xywing(tablist,(12,20,50))
+            for nk in range(2,6):
+                print('hidden  ',nk)    
+                hint="hidden  "+str(nk)
+                ResulHelp,tabhelp=hidden_pair(tablist,nk,(12,20,50))
+                if ResulHelp:
+                    break
             if ResulHelp:
-                   redraw()
+                print('found:',hint)
+                redraw()
             else:
                    print('nothing found')
     
@@ -1056,37 +1151,11 @@ def loop(board):
             dou=False
             value=-1
             # print('visu',valueVisu,visuActive)
-            cv2.rectangle(gridMenu, (390,60), (550,90), (20,20,10), -1)
-            cv2.putText(gridMenu,'visu : '+ ' ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-
-            if visuActive and (valueVisu in range(1,10)):
-                cv2.putText(gridMenu,'visu : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-            else:
-                cv2.putText(gridMenu,'              ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-                #•cv2.putText(gridMenu,'visu : '+ '7' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-
+            visugra(valueVisu,visuActive)
+          
             redraw()
             # visu=False
         
-        if dou:
-                print('higlihts pair')
-                visuActive=False
-                # print(tabentert)
-                visu=False
-                cv2.rectangle(gridMenu, (400,60), (550,90), (20,30,10), -1)
-                togdou(toggleDou)
-                if toggleDou:
-                #     for x in range (0,9):
-                #         for y in range(0,9):
-                #                 # print('got',x,y)
-                #             if (x,y) in tablist:
-                #                 listp=tablist[(x,y)]
-                #                 if len(listp)==2:
-                #                     gridpair+=visui(x,y,(80,80,80))          
-
-                    cv2.putText(gridMenu,'double' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)          
-                redraw()
-                dou=False
 
         if moins and value >0 and CaseSelected:
           #  moins=False
@@ -1312,8 +1381,7 @@ def isgoodnumber(table,n):
             return False ,a                
     return True,n
 
-def iswrong(table,n):
-    comment=False
+def iswrong(table,n,comment):
     if comment:
         print('run iswrong',n)
     #define places where it is not completed
@@ -1358,30 +1426,39 @@ def iswrong(table,n):
         print('not wrong')
     return False
 
-def tobenext(table,n):
-    # print('run tobenext',b)
+def tobenext(table,n,comment):
+    if comment:
+       print('run tobenext n:',n)
+       print('table',table)
     #line
     for i in range(9):
         a=[]
         for j in range(9):
-            #print('tobenext Line',(i,j),table[i][j])
+            # if comment:
+            #     print('tobenext Line',(i,j),table[i][j])
             # if (j,i) in b:
                 if table[i][j]==10+n:
-                    # print('tobenext OK line',(j,i),table[i][j])
+                    if comment:
+                       print('tobenext OK line',(j,i),table[i][j])
                     a.append((j,i))
         if len(a)==1:
-            # print('unique line',i)
+            if comment:
+               print('unique line',i,a[0])
             return False,a[0]
     for i in range(9):
          a=[]
          for j in range(9):
+             # if comment:
+             #     print('tobenext Colonne',(i,j),table[i][j])
              # if (i,j) in b:
                  # print((i,j),table[j][i])
                  if table[j][i]==10+n:
-                     # print('tobenext OK colonne',(i,j),table[i][j])
+                     if comment:
+                        print('tobenext OK colonne',(i,j),table[i][j])
                      a.append((i,j))
          if len(a)==1:
-             # print('unique col ',i)
+             if comment:
+                print('unique col ',i,a[0])
              return False,a[0]
              
     for i in (0,1,2):
@@ -1389,23 +1466,28 @@ def tobenext(table,n):
          sectopx = 3 * i
          sectopy = 3 * j
          a=[]
-         #print('sectopx:',sectopx,'sectopy:',sectopy)
+         # if comment:
+         #     print('sectopx:',sectopx,'sectopy:',sectopy)
          for xj in range(sectopx, sectopx+3):
                 for xi in range(sectopy, sectopy+3):
                     # if (xi,xj) in b:
            #         print((xi,xj),table[xi][xj])
                         if table[xi][xj]==10+n:
-                            # print('tobenext OK carre',(xj,xi),table[i][j])
-                            a.append((xi,xj))
+                            if comment:
+                                print('tobenext OK carre',(xj,xi),table[i][j])
+                            a.append((xj,xi))
          if len(a)==1:
-            # print('unique carre ',xj,xj)
+            if comment:
+               print('unique carre ',xj,xj,a[0])
             # print(a)
             return False ,a[0]              
     return True,n
                
                
-def fillforone(table,n,b):
-    # print('fillform at address',b)
+def fillforone(table,n,b,comment):
+    if comment:
+      print('fillforone at address',b,'n',n)
+      print('table',table)
     #line
     tempotable =table.copy()
     tempotable[b[1]][b[0]]=n
@@ -1426,22 +1508,23 @@ def fillforone(table,n,b):
            for xi in range(sectopy, sectopy+3):
                if xi !=  b[1] and xj != b[0]:
                  tempotable[xi][xj]=0
+    if comment:
+       print('fillforone  result',tempotable)
     
     return tempotable
 
-def rempliall(table,n,a):
-    comment=False
+def rempliall(table,n,a,comment):
     if comment:
         print('run rempliall',n,'with seed',a)
     tempotable =table.copy()
     aa=a
     isfinish=False
     iii=0
-    # print('b',b)
     good=True
     while (not isfinish) and iii <5:
         iii+=1
-        tempotable=fillforone(tempotable,n,aa) 
+        tempotable=fillforone(tempotable,n,aa,comment) 
+
         # b=lookForPossibleTabn(tempotable,n,tabentert)
         if comment:
             # print("b")
@@ -1449,11 +1532,11 @@ def rempliall(table,n,a):
     
             print(iii, 'tempotable',aa)
             print(tempotable)
-        isfinish=iswrong(tempotable,n)
+        isfinish=iswrong(tempotable,n,comment)
         if not isfinish:
             if comment:
                 print('rempliall not finish')
-            isfinish,aa =tobenext(tempotable,n)
+            isfinish,aa =tobenext(tempotable,n,comment)
             if not isfinish:
                 if comment:
                     print('not isfinish rempliall',aa)
@@ -1536,11 +1619,197 @@ def intersecr(arr,col):
                         
     return False,grid
 
+def lookForHiddenPair(data,setdata,nk,comment):
+    #setdata: list of figures
+    #data list of possible in full set
+
+    # calculate list of nk tuple in setdata
+    p = []
+    i, imax = 0, 2**len(setdata)-1
+    while i<=imax:
+        s = []
+        j, jmax = 0, len(setdata)-1
+        while j<=jmax:
+            if (i>>j)&1==1:
+                    s.append(setdata[j])
+            j += 1
+        if len(s)==nk:
+            p.append(s)
+        i += 1
+    if comment:
+         print("setdata",setdata)
+         print("p",p)
+    #p is list of nk tuple in setdata
+    # for each tuple of p ,look for boxes with at least one figure
+    # put in dictionary setn
+    setn={}
+    for enum,pp in enumerate(p):
+        # print("pp",pp)
+        setn[enum]={}
+        setn[enum]['pp']=pp
+        setn[enum]['data']=[]
+                   
+        for d in data:
+            g=False
+            for ss in pp:
+                # if comment:
+                #     print("ss",ss,"d",d)
+                if ss in d[1]:
+                    g=True
+                    break
+            if g:
+                setn[enum]['data'].append(d)
+    #inside setn, for each ktuple,  look for excatly nk boxes
+    # put in resu dictionary 
+    resu={}
+    if comment:
+        # print("setn",setn)
+        for nn in setn:
+            if len(setn[nn]['data'])>0:
+                  print("pp:",setn[nn]['pp'],"data:",setn[nn]['data'])
+    num=0              
+    for nn in setn:
+            # print('nn',nn,'len',len(setn[nn]['data']))
+            if len(setn[nn]['data'])==nk:
+                num+=1
+                # print('nn',nn,'len',len(setn[nn]['data']))
+                resu[num]={}
+                resu[num]['data']=setn[nn]['pp'] #ktuple
+                resu[num]['add']=[] # adresses of boxes
+                resu[num]['arr']=[] # content of boxes
+                
+                for i in range(nk):
+                     resu[num]['add'].append(setn[nn]['data'][i][0])
+                     resu[num]['arr'].append(setn[nn]['data'][i][1])
+                #     resu[setn[nn]['pp']]['data'].append(setn[nn]['data'][i][1])
+                # if comment:
+                #     print(resu)
+                #     print("nn:",nn,setn[nn])
+                
+    #             # resu.append((setn[nn]['pp'],setn[nn]['data']))
+    if comment:
+          print("resu",resu)
+    #     for r in resu:
+    #         print('r',resu[r]['data'])
+    #         print('r',resu[r]['add'])
+    #         print('r',resu[r]['arr'])
+            # print('r1',r[1])
+    final=[]
+    finalG=False
+    # select nktuple and associated boxes wher no other occurence of figures outside theses boxes
+    for r in resu:
+        g=True
+        # print('r',resu[r])
+        for rr in resu[r]['data']:
+            # print('rr',rr)
+            for d in data:
+                # print('d',d,'d0',d[0],'resu[r][add]',resu[r]['add'],'d1',d[1])
+                if d[0] not in resu[r]['add']:
+                    if rr in d[1]:
+                        g=False
+                        break
+                
+        if g:
+            final=resu[r]
+            if comment:
+              print('good result',resu[r])
+            finalG=True
+            break
+    # print('final',final)
+    # look that ktuple figures are not alone in at least one box
+    goodagain=False
+    if finalG:
+        for iarr in final['arr']:
+            # print("iarr",iarr)
+            if len(iarr)>nk:
+                goodagain=True
+                break
+
+    
+    if goodagain:
+        if comment:
+            print(final)
+        return True,final['add']
+    else:
+        return False,()
+        
+
+    
+def hidden_pair(arr,nk,col):
+    grid = np.zeros(shapeRef, dtype=np.uint8)
+    comment=False
+    for i in range(0,9):
+    #for i in range(4,5):
+        if comment:
+            print('col', i)
+        data=[]
+        setdata=[]
+        for j in range(0,9):
+            la=arr[j,i]
+            for ii in la:
+                if ii not in setdata:
+                    setdata.append(ii)
+            data.append(((i,j),la))
+        if comment:
+                print(data)
+                print(setdata)
+        result,b=lookForHiddenPair(data,setdata,nk,comment)
+        if result:
+            for nri in range(len(b)):
+                      grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+            return True,grid
+    for i in range(0,9):
+        if comment:
+            print('line', i)
+        data=[]
+        setdata=[]
+        for j in range(0,9):
+            la=arr[i,j]
+            for ii in la:
+                if ii not in setdata:
+                    setdata.append(ii)
+            data.append(((j,i),la))
+        if comment:
+                print(data)
+                print(setdata)
+        result,b=lookForHiddenPair(data,setdata,nk,comment)
+        if result:
+            for nri in range(len(b)):
+                      grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+            return True,grid
+    for j in (0,3,6):
+          for i in (0,3,6):
+             data=[]
+             setdata=[]
+             if comment:
+                 print('carre', i,j)
+             sectopx = 3 * (j//3)
+             sectopy = 3 * (i//3)
+             for xj in range(sectopx, sectopx+3):
+                 for xi in range(sectopy, sectopy+3):
+                     la=arr[xi,xj]
+                     for ii in la:
+                         if ii not in setdata:
+                             setdata.append(ii)
+                     data.append(((xj,xi),la))
+             if comment:
+                     print(data)
+                     print(setdata)
+             result,b=lookForHiddenPair(data,setdata,nk,comment)
+             if result:
+                for nri in range(len(b)):
+                         grid= rectfrid(b[nri][0],b[nri][1],grid,col)
+                return True,grid
+                     # print(xj,xi,arr[xi,xj])
+    return False,grid
+    
 def exBaOnCo(arr,col):
     grid = np.zeros(shapeRef, dtype=np.uint8)
+    comment=False
     
     for n in range(1,10):
-        #print("line",'number',n)
+        if comment:
+            print("line",'number',n)
         tempoboard =np.zeros((9, 9), dtype="int")
       
         for j in range(9):     
@@ -1550,21 +1819,26 @@ def exBaOnCo(arr,col):
                 if n in arr[j,i]:
                     # a.append(arr[j,i])
                     tempoboard[j,i]=n+10
+        if comment:
+            print(tempoboard)
    
         # # seed=(4,7)
         b=lookForPossibleTabn(tempoboard,n,arr)
-        # print("b",b)
+        if comment:
+            print("b",b)
+            # b=[(6,2)]
        
         for seed in b:
-                tempotable,good=rempliall(tempoboard,n,seed)
+                tempotable,good=rempliall(tempoboard,n,seed,comment)
                 # bb=lookForPossibleTabn(tempotable,n,arr)
 
                 if not good:
                     print('value excluded',n)
-                    # for nri in range(len(bb)):
-                    #             grid= rectfrid(bb[nri][0],bb[nri][1],grid,col)
+                    if comment:
+                         for nri in range(len(b)):
+                                  grid= rectfrid(b[nri][0],b[nri][1],grid,col)
 
-                    grid= rectfrid(seed[0],seed[1],grid,col)
+                    grid= rectfrid(seed[0],seed[1],grid,(10,50,10))
                     return True,grid
         
     return False,grid
@@ -1618,9 +1892,11 @@ def onlypossible(arr,col):
                          
       
 def locked_candidate(arr,col,n):
+    comment=False
     grid = np.zeros(shapeRef, dtype=np.uint8)
     for n in range(1,10):
-        #print("line",'number',n)
+        if comment:
+            print("line",'number',n)
         for j in range(9):
             a=[]
             b=[]
@@ -1656,7 +1932,8 @@ def locked_candidate(arr,col,n):
                     #     return True,grid
                 #♦print(grid.shape)
                 # return True,grid
-        #print("colonne",'number',n)
+        if comment:
+            print("colonne",'number',n)
         for j in range(9):
              a=[]
              b=[]
@@ -1752,21 +2029,6 @@ def compagnon(arr,b):
     # print('Ccompagnon',C)
     return X,Y,C,T
 
-# def minmax(z):
-#     a=z[0]
-#     b=z[1]
-#     return(min(a,b),max(a,b))
-
-# def lookforcommonold(a,u):
-#     if a[0]==u[0]:
-#         return True,minmax((a[1],u[1]))
-#     if a[0]==u[1]:
-#         return True,minmax((a[1],u[0])) 
-#     if a[1]==u[0]:
-#         return True,minmax((a[0],u[1])) 
-#     if a[1]==u[1]:
-#         return True,minmax((a[0],u[0])) 
-#     return False ,(0,0)
 
 def lookforcommon(a,u):
     if a ==u:
