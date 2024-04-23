@@ -223,7 +223,7 @@ def click_and_crop(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         # cv2.rectangle(menus, (150,12), (370,32), black, -1)
         # posrc=0
-        print ("x:",x,"y:",y)
+        # print ("x:",x,"y:",y)
         if  x> 0 and y > 0 and x<30 and y<30:
                print ( 'this is 1')
                cchiffre(1)
@@ -378,7 +378,8 @@ def rempliMenu()    :
     # cv2.putText(gridMenu,str(i+1) ,((i*30)+5*i+5,15), cv2.FONT_HERSHEY_PLAIN,0.7,(240,200,180),1)
     
 def redraw():
-        global showPossible,gridpair,tabentertimg,showPossible,image,gridVisu,ArraySelected,gridMenu,tabentert,tabresrinit,imagel,valueVisu,visuActive,toggleDou
+        global showPossible,gridpair,tabentertimg,showPossible,image,gridVisu,ArraySelected,gridMenu
+        global tabentert,tabresrinit,imagel,valueVisu,visuActive,toggleDou
         global lastpx,lastpy,tabhelp,errormoins,gridColor
        # print('I redraw')
         griderror=np.zeros(shapeRef,np.uint8)
@@ -400,7 +401,7 @@ def redraw():
         else:
             imageview=image
         visiuNum(valueVisu,visuActive)
-        togdou(toggleDou)
+        #togdou(toggleDou)
         imageview=cv2.add(imageview,gridVisu) ## highlight only some number
         imageview=cv2.add(imageview,griderror) ## highlight error
         imageview=cv2.add(imageview,tabentertimg) ## with entered num
@@ -469,7 +470,7 @@ def visiuNum(valueVisu,toggleVisu):
                     if valueVisu in listp:
                         gridVisu+=visui(x,y,(80,120,80))                        
     #redraw()
-def  togdou(toggleDou):
+def  togdou(toggleDou,n):
     global tablist,gridpair
     gridpair=np.zeros(shapeRef,np.uint8)
     if toggleDou:
@@ -478,7 +479,7 @@ def  togdou(toggleDou):
                     # print('got',x,y)
                 if (x,y) in tablist:
                     listp=tablist[(x,y)]
-                    if len(listp)==2:
+                    if len(listp)==n:
                         gridpair+=visui(x,y,(80,80,80))          
 def cplus():
     global mos,value,plus,visu,moins,dou
@@ -594,8 +595,9 @@ def okwebcam():
 
 
 def cdouble():
-    global dou,toggleDou,moins,visu,plus,visuActive,gridMenu
+    global dou,toggleDou,moins,visu,plus,visuActive,gridMenu,tri
     dou=True
+    tri=False
     toggleDou = not(toggleDou)
     print ('visualize double',toggleDou)
     moins=False
@@ -604,10 +606,28 @@ def cdouble():
     visuActive=False
     # print(tabentert)
     cv2.rectangle(gridMenu, (400,60), (550,90), (20,30,10), -1)
-    togdou(toggleDou)
+    togdou(toggleDou,2)
     if toggleDou:
         cv2.putText(gridMenu,'double' ,(410,85), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)          
     dou=False
+    redraw()
+    
+    
+def ctriple():
+    global dou,tri,toggleTri,moins,visu,plus,visuActive,gridMenu
+    dou=False
+    tri=True
+    toggleTri = not(toggleTri)
+    print ('visualize triple',toggleTri)
+    moins=False
+    plus=False
+    visu=False
+    visuActive=False
+    # print(tabentert)
+    cv2.rectangle(gridMenu, (400,60), (550,90), (20,30,10), -1)
+    togdou(toggleTri,3)
+    if toggleTri:
+        cv2.putText(gridMenu,'triple' ,(410,85), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)      
     redraw()
 
 def cwebcam():
@@ -647,8 +667,8 @@ def cwebcam():
               
 
 def cchiffre(n):
-    global command,mos,plus,visu,moins,dou,valueVisu,numsaved,errormoins,tabhelp
-    global lastpx,lastpy,tablistSaved,value,CaseSelected,toggleDou,gridMenu,visuActive
+    global command,mos,plus,visu,moins,dou,valueVisu,numsaved,errormoins,tabhelp,tri
+    global lastpx,lastpy,tablistSaved,value,CaseSelected,toggleDou,gridMenu,visuActive,toggleTri
     # print('cchiffre',px,py,moins,plus)
     
     if visu:
@@ -709,7 +729,9 @@ def cchiffre(n):
     if visu:
         # valueVisu=value
         toggleDou=False
+        toggleTri=False
         dou=False
+        tri=False
         value=-1
         visugra(valueVisu,visuActive)
         # print('visu',valueVisu,visuActive)
@@ -741,7 +763,7 @@ def visugra(valueVisu,visuActive):
 def loop(board):
     global quitl,lookForList,plus,imagel,tabentert,value,tablist,moins,visu,gridVisu,gridMenu,ArraySelected,CaseSelected,px,py,gridpair,tabentertimg,showPossible
     global image,tabresrinit,valueVisu,visuActive,toggleDou,lastpx,lastpy,tabhelp,errormoins,solvedFTrue,gridColor
-    global command,mos,dou,webcamLaunched
+    global command,mos,dou,webcamLaunched,toggleTri,tri
     global key,numsaved,tablistSaved,webcamV,tabentertimg
 
     ggdinit=affinit(board,(255,255,0))
@@ -754,6 +776,8 @@ def loop(board):
     mos=False
     webcamV=False
     toggleDou=False
+    toggleTri=False
+    tri=False
     showPossible=True
     visuActive=False
     color=False
@@ -828,6 +852,7 @@ def loop(board):
         # r reset all
         # s save to save.p
         # S solve
+        # t visualise triple
         # v + "number" visualise all possible "number"
         # x write for Simple Sudoku
         # w webcam
@@ -926,12 +951,14 @@ def loop(board):
     
         
         elif key == ord("d"):   
-            cdouble()                  
+            cdouble()  
+        elif key == ord("t"):   
+            ctriple()                  
              
         
         elif key == ord("m"):                     
                  mos=True
-                 print ('modify source',toggleDou)
+                 print ('modify source')
                  moins=False
                  plus=False
                  visu=False
@@ -1128,12 +1155,9 @@ def loop(board):
               print('nothing found')
         
         elif key == ord("J"):
-            for nk in range(2,6):
-                print('hidden  ',nk)    
-                hint="hidden  "+str(nk)
-                ResulHelp,tabhelp=hidden_pair(tablist,nk,(12,20,50))
-                if ResulHelp:
-                    break
+            print("xywing")
+            hint="xywing"
+            ResulHelp,tabhelp= xywing(tablist,(12,20,50))
             if ResulHelp:
                 print('found:',hint)
                 redraw()
@@ -1149,6 +1173,8 @@ def loop(board):
             # valueVisu=value
             toggleDou=False
             dou=False
+            toggleTri=False
+            tri=False
             value=-1
             # print('visu',valueVisu,visuActive)
             visugra(valueVisu,visuActive)
@@ -2058,12 +2084,11 @@ def xywing(arr,col):
     for i in range(0,9):
         for j in range(0,9):
     # grid = np.zeros(shapeRef, dtype=np.uint8)
-    # for i in range(1,2):
-    #     for j in range(0,1):
+    # for i in range(3,4):
+    #     for j in range(1,2):
                 if len (arr[j,i])==2:
                     grid = np.zeros(shapeRef, dtype=np.uint8)
                     pivot= arr[j,i]
-
 
                     if comment:
                         print('pivot',pivot,(i,j))   
@@ -2081,7 +2106,7 @@ def xywing(arr,col):
                           resokx,otherFig,candForElim=lookforcommon(pince1d,pivot)
                           if resokx:
                               if comment:
-                                  print('rsokx',resokx,'pivot loc', (i,j),'pivot', pivot,' pince1 loc:',pince1l, 'pince data',pince1d)
+                                  print('pince1 en X, rsokx',resokx,'pivot loc', (i,j),'pivot', pivot,' pince1 loc:',pince1l, 'pince data',pince1d)
                                   print('otherFig ',otherFig,'candForElim ',candForElim)
                                   # grid= rectfrid(pince1l[0],pince1l[1],grid,col1)
                                   # return True,grid
@@ -2105,6 +2130,37 @@ def xywing(arr,col):
                                                   grid= rectfrid(candLocation[0],candLocation[1],grid,col)
                                                   grid= rectfrid(i,j,grid,col3)
                                                   return True,grid
+                              if comment: print('recherche pince 2 en carre',C)
+                              for c in C:
+                                         pince2l=c[0]
+                                         pince2d=c[1]
+                                         if comment:
+                                             print('c',c,)
+                                             print('otherFig ',otherFig,'candForElim ',candForElim)
+                                             print('otherFig in pince2d',otherFig in pince2d)
+                                             print('candForElim in pince2d',candForElim in pince2d)
+                                         if otherFig in pince2d:
+                                             if candForElim in pince2d:
+                                                 x0x=3*(pince2l[0]//3)
+                                                 candt=((x0x,pince1l[1]),(x0x+1,pince1l[1]),(x0x+2,pince1l[1]))
+                                                 if comment:
+                                                   print('candidate goody from carre ', 'c:', c, 'otherfig:',otherFig,"candForElim:",candForElim)
+                                                   print('candt',candt)
+                                                  
+     
+     
+                                                 for cand in candt:
+                                                     if candForElim in arr[cand[1],cand[0]]:
+                                                         if comment:
+                                                             print("cand ",cand)
+                                                             grid= rectfrid(pince1l[0],pince1l[1],grid,col1)
+                                                             grid= rectfrid(pince2l[0],pince2l[1],grid,col2)
+                                                             # grid= rectfrid(candt[0][0],candt[0][1],grid,col4)
+                                                             # grid= rectfrid(candt[1][0],candt[1][1],grid,col4)
+                                                             # grid= rectfrid(candt[2][0],candt[2][1],grid,col4)
+                                                         grid= rectfrid(cand[0],cand[1],grid,col)
+                                                         grid= rectfrid(i,j,grid,col3)
+                                                         return True,grid
                               # if comment: print('recherche pince 2 en C',C)
                                               
 
