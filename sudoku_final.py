@@ -9,6 +9,28 @@ environment: my-env
 # USAGE
 # python adaptive_equalization.py --image images/boston.png
 # tablist list possible
+  # keys up,down,left,right: move position one case
+  # + add number
+  # - substract number from possible
+  # ctrl z : undo
+  # Suppr: suppress entry in modifu
+  # d visualise double
+  # H Help
+  # h reset Help
+  # l   reset list all possibles
+  # L toggle view list possible 
+  # m modify source
+  # n new blank
+  # q or Q: quit   
+  # r reset all
+  # s save to save.p
+  # S solve
+  # t visualise triple
+  # v + "number" visualise all possible "number"
+  # x write for Simple Sudoku
+  # w webcam
+
+
 
 from imutils.perspective import four_point_transform
 from skimage.segmentation import clear_border
@@ -668,30 +690,13 @@ def cwebcam():
 
 def cchiffre(n):
     global command,mos,plus,visu,moins,dou,valueVisu,numsaved,errormoins,tabhelp,tri
-    global lastpx,lastpy,tablistSaved,value,CaseSelected,toggleDou,gridMenu,visuActive,toggleTri
+    global lastpx,lastpy,tablistSaved,value,CaseSelected,toggleDou,gridMenu,visuActive,toggleTri,lastAction
     # print('cchiffre',px,py,moins,plus)
     
     if visu:
         valueVisu=n
         value=-1
-        # print ('visu', valueVisu)
-        # if visuActive:
-        #     cv2.putText(gridMenu,'visuv : '+ str(valueVisu) ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-        # else:
-        #     cv2.putText(gridMenu,'           ' ,(410,80), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-        # redraw()
-        # visu=True
-    if plus:
-        print ('plus', n)
-        lastpx=px
-        lastpy=py
-        tablistSaved= tablist.copy()
-        cv2.rectangle(gridMenu, (400,30), (550,60), (20,30,10), -1)
-        cv2.putText(gridMenu,'+ '+': '+str(n) ,(450,55), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
-        tabhelp=np.zeros(shapeRef,np.uint8)
-        moins=False
-        value=n
-        # waitforvalue=False
+   
     if moins:
         if px >-1 and py>-1:
             print ('moins ', n)
@@ -701,6 +706,8 @@ def cchiffre(n):
             # waitforvalue=False
             lastpx=px
             lastpy=py
+            tablistSaved= tablist.copy()
+            lastAction="moins"
             cv2.rectangle(gridMenu, (400,30), (590,60), (20,30,10), -1)
             if solvedFTrue[px,py]==n:
                 errormoins=True
@@ -714,13 +721,25 @@ def cchiffre(n):
         lastpx=px
         lastpy=py
         tablistSaved= tablist.copy()
+        lastAction="mos"
         print ('add to source',value)
     if plus and n >0 and CaseSelected:
-         print('I add', value)
+        # print ('plus', n)
+        lastpx=px
+        lastpy=py
+        tablistSaved= tablist.copy()
+        lastAction="plus"
+        cv2.rectangle(gridMenu, (400,30), (550,60), (20,30,10), -1)
+        cv2.putText(gridMenu,'+ '+': '+str(n) ,(450,55), cv2.FONT_HERSHEY_PLAIN,2,(240,200,180),1)
+        tabhelp=np.zeros(shapeRef,np.uint8)
+        moins=False
+        value=n
+        print('I add', value)
        #  plus=False
-         plusl(px,py,value)
-         value = -1
-         redraw()
+        plusl(px,py,value)
+        value = -1
+        plus=False
+        redraw()
     if moins and n >0 and CaseSelected:
        #  moins=False
          moinsl(px,py,value)
@@ -764,7 +783,7 @@ def loop(board):
     global quitl,lookForList,plus,imagel,tabentert,value,tablist,moins,visu,gridVisu,gridMenu,ArraySelected,CaseSelected,px,py,gridpair,tabentertimg,showPossible
     global image,tabresrinit,valueVisu,visuActive,toggleDou,lastpx,lastpy,tabhelp,errormoins,solvedFTrue,gridColor
     global command,mos,dou,webcamLaunched,toggleTri,tri
-    global key,numsaved,tablistSaved,webcamV,tabentertimg
+    global key,numsaved,tablistSaved,webcamV,tabentertimg,lastAction
 
     ggdinit=affinit(board,(255,255,0))
     quitl=False
@@ -1044,11 +1063,11 @@ def loop(board):
                 print('ctrl z',lastpy,lastpx)
                 if lastpy>-1 and lastpx>-1:
                     
-                    if plus:
+                    if lastAction=="plus":
                         print('I undo plus',px,py)
                         tabentert[lastpx,lastpy]=0
                         tablist=tablistSaved.copy()
-                    if moins:
+                    if lastAction=='moins':
                         print('I undo moins',px,py)
                         # px=lastpx
                         # py=lastpy
@@ -2887,137 +2906,11 @@ else:
     shapeRef=(680, 600, 3)
     stepX = shapeRef[1] // 9
     stepY = shapeRef[0] // 9
-    # imagel=lfplist()
-    
   
-    # image = cv2.imread(imageToLoad)
-    
-    # # image =rotate_image(image,90)
-    
-    # aspectratio=image.shape[0]/image.shape[1]
-    # newheight=int(finalwidth*aspectratio)
-    
-    # image=cv2.resize(image, (finalwidth, newheight))
-    # # cv2.imshow("image", image)
-    
-    # (puzzleImage, warped) = find_puzzle(image, debug=False)
-    
-    # aspectratio=warped.shape[0]/warped.shape[1]
-    # newheight=int(finalwidth*aspectratio)
-    # warped=cv2.resize(warped, (finalwidth, newheight))
-    # puzzleImage=cv2.resize(puzzleImage, (finalwidth, newheight))
-    # image=cv2.resize(image, (finalwidth, newheight))
-    
-
-    # print(warped.shape)
-    # print(image.shape)
-    
-    # # cv2.imshow("puzzleImage", puzzleImage)
-    # # cv2.imshow("warped", warped)
-    # # cv2.imshow("image", image)
-    # # cv2.waitKey()
-    # # cv2.destroyAllWindows()  
-    
-
-    
-    # # initialize our 9x9 Sudoku board
-    # board = np.zeros((9, 9), dtype="int")
-    # # a Sudoku puzzle is a 9x9 grid (81 individual cells), so we can
-    # # infer the location of each cell by dividing the warped image
-    # # into a 9x9 grid
-    # stepX = warped.shape[1] // 9
-    # stepY = warped.shape[0] // 9
-    # # initialize a list to store the (x, y)-coordinates of each cell
-    # # location
-    # cellLocs = []
-
-    
-    # if debugN:
-    #     (board,cellLocs) = pickle.load( open( "save.p", "rb" ) )
-    # else:
-    #     board,cellLocs=lookForFig(stepX,stepY,puzzleImage)
-    #     pickle.dump( (board,cellLocs), open( "save.p", "wb" ) )
 
 ArraySelected =np.zeros(shapeRef, dtype=np.uint8)
 
 
-
-
-# cv2.imshow("puzzleImage", puzzleImage)
-# cv2.imshow("warped", warped)
-# cv2.waitKey()
-# cv2.destroyAllWindows()  
-
-
-
-# initialize our 9x9 Sudoku board
-
-# initialize a list to store the (x, y)-coordinates of each cell
-# location
-
-# ref = np.zeros((9, 9), dtype="int")
-# ref[1,8]=6
-# ref[1,7]=2
-# ref[2,5]=2
-# ref[2,6]=3
-# ref[2,7]=9
-# ref[3,1]=5
-# ref[3,7]=3
-# ref[4,4]=3
-# ref[4,6]=9
-# ref[4,7]=8
-# ref[5,2]=1
-# ref[5,5]=8
-# ref[5,7]=7
-# ref[5,8]=2
-# ref[6,2]=8
-# ref[6,5]=7
-# ref[6,7]=6
-# ref[7,1]=6
-# ref[7,2]=5
-# ref[7,5]=1
-# ref[7,6]=7
-# ref[7,8]=3
-# ref[8,1]=1
-# ref[8,2]=7
-# ref[8,4]=2
-# ref[8,7]=5
-
-
-
-# ref[1,7]=4
-# ref[1,8]=3
-# ref[2,4]=3
-# ref[2,5]=1
-
-# ref[3,1]=4
-# ref[3,5]=7
-# ref[4,2]=3
-# ref[4,6]=2
-# ref[4,8]=8
-# ref[5,2]=8
-# ref[5,8]=5
-# ref[6,1]=9
-# ref[6,2]=4
-# ref[6,4]=8
-# ref[6,7]=5
-# ref[7,1]=3
-# ref[7,4]=5
-# ref[7,5]=9
-# ref[7,6]=7
-# ref[8,1]=8
-# ref[8,2]=5
-# ref[8,3]=7
-# ref[8,6]=1
-# ref[8,7]=2
-
-
-# if debugN:
-#     (board,cellLocs) = pickle.load( open( "save.p", "rb" ) )
-# else:
-#     board,cellLocs=lookForFig()
-#     pickle.dump( (board,cellLocs), open( "save.p", "wb" ) )
-#board[0][0]=1
 tabresrinit=board.copy()
 tabentert=board.copy()
 ggdinit=affinit(tabresrinit,(255,255,0))
