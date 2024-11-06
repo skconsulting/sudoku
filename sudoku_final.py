@@ -294,7 +294,7 @@ def click_and_crop(event, x, y, flags, param):
             print ('on quitte', quitl)
             cv2.destroyAllWindows()
         elif x>0 and x<30 and y >40 and y <70:
-            print('tart webcam')
+            print('start webcam')
             cwebcam()
 
         elif x>35 and x<65 and y >40 and y <70:
@@ -658,7 +658,7 @@ def cwebcam():
 
     finl=True
     webcamLaunched=True
-    print('start webcam')
+    # print('start webcam')
     webcamV=False
     webcam = cv2.VideoCapture(0)
 
@@ -696,7 +696,7 @@ def cchiffre(n):
     if visu:
         valueVisu=n
         value=-1
-   
+  
     if moins:
         if px >-1 and py>-1:
             print ('moins ', n)
@@ -723,6 +723,7 @@ def cchiffre(n):
         tablistSaved= tablist.copy()
         lastAction="mos"
         print ('add to source',value)
+        
     if plus and n >0 and CaseSelected:
         # print ('plus', n)
         lastpx=px
@@ -1067,6 +1068,17 @@ def loop(board):
                         print('I undo plus',px,py)
                         tabentert[lastpx,lastpy]=0
                         tablist=tablistSaved.copy()
+                    if lastAction=="mos":
+                            print('I undo plus',px,py)
+                            tabentert[lastpx,lastpy]=0
+                            tablist=tablistSaved.copy()
+                            board[px,py]=0
+                            tabresrinit=board.copy()
+                            ggdinit=affinit(tabresrinit,(255,255,0))
+                            image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+                            tabentert=board.copy()
+                            imagel,tablist=lfp(tabentert)
+                            
                     if lastAction=='moins':
                         print('I undo moins',px,py)
                         # px=lastpx
