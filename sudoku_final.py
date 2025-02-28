@@ -29,6 +29,7 @@ environment: my-env
   # v + "number" visualise all possible "number"
   # x write for Simple Sudoku
   # w webcam
+  # y check if resolvable
 
 
 
@@ -54,7 +55,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 debug=False
 solve=False
 
-readJPG=False # read images or not if True  read image else read saved sata
+readJPG=False # read images or not if True  read image else read saved data
 Radomseed=False
 
 finalwidth=600
@@ -582,12 +583,12 @@ def qwebcam():
 
     
 def okwebcam():
-    global webcam,image,board,cellLocs,tabresrinit,tabentert,imagel,tablist,resultsolved,solvedFTrue,solved,ggdinit
+    global webcam,image,board,tabresrinit,tabentert,imagel,tablist,resultsolved,solvedFTrue,solved,ggdinit
     global tabentertimg,webcamLaunched,finl
     print('ok webcam')
     if webcamLaunched:
         webcam.release()
-        board,cellLocs=loadimage('cam.jpg')
+        board=loadimage('cam.jpg')
         cv2.destroyWindow("Capturing")
         cv2.destroyWindow("Captured")
     
@@ -653,7 +654,7 @@ def ctriple():
     redraw()
 
 def cwebcam():
-    global webcamV,image,tabentertimg,tabentert,imagel,tablist,board,cellLocs,tabresrinit,ggdinit,solved
+    global webcamV,image,tabentertimg,tabentert,imagel,tablist,board,tabresrinit,ggdinit,solved
     global webcamLaunched,webcam,finl,frame
 
     finl=True
@@ -876,6 +877,7 @@ def loop(board):
         # v + "number" visualise all possible "number"
         # x write for Simple Sudoku
         # w webcam
+        # y check solvable
        # key = cv2.waitKey(100) & 0xFF
 
 
@@ -1009,7 +1011,7 @@ def loop(board):
             print ('save')
             #boardu,cellLocs=loadimage('cam.jpg')
             #boarddummy,cellLocs=lookForFig(stepX,stepY,puzzleImage)
-            pickle.dump( (tabentert,cellLocsSave,tablist), open( cwd+"/save.p", "wb" ) )
+            pickle.dump( (tabentert,tablist), open( cwd+"/save.p", "wb" ) )
             # pickle.dump( tablist), open( "save.p", "wb" ) )
 
         elif key == ord("S"):
@@ -1101,6 +1103,15 @@ def loop(board):
             print('erase help')
             tabhelp=np.zeros(shapeRef,np.uint8)
             redraw()
+            
+        elif key == ord("y"):
+                print('check if solvable')
+                resultSolved,_=solvesudokuNew(tabentert)
+                if not (resultSolved):
+                    print('Not Solvable')
+                else:
+                    print('Solvable')
+        
             
         elif key == ord("H"):
           #tempo,tablisttempo=lfp()
@@ -2824,7 +2835,7 @@ def convertBoardInv(board):
 
 
 def loadimage(imageToLoad):
-    global cellLocs
+    #global cellLocs
     print("[INFO] loading input image...",imageToLoad)
     image = cv2.imread(cwd+'/'+imageToLoad)
     
@@ -2866,39 +2877,44 @@ def loadimage(imageToLoad):
     # initialize a list to store the (x, y)-coordinates of each cell
     # location
    # cellLocs = []
-
-    board,cellLocs=lookForFig(stepX,stepY,puzzleImage)
+    
+    board,_=lookForFig(stepX,stepY,puzzleImage)
     tabentert=board.copy()
     imagel,tablist=lfp(tabentert)
-    pickle.dump( (board,cellLocs,tablist), open( cwd+"/save.p", "wb" ) )
-    return board,cellLocs
+    pickle.dump( (board,tablist), open( cwd+"/save.p", "wb" ) )
+    return board
 
 #Radomseed=False
-
+shapeRef=(680, 600, 3)
+stepX = shapeRef[1] // 9
+stepY = shapeRef[0] // 9
+cellLocs=lookForFigSeed(stepX,stepY)
+# print("1 ",stepX,stepY)
 
 if Radomseed :
     seed=random.randrange(1000)
     # shapeRef=(596, 600, 3)
-    shapeRef=(680, 600, 3)
+    # shapeRef=(680, 600, 3)
     puzzle= Sudoku(3, 3,seed=seed).difficulty(0.4)
     board= convertBoardInv(puzzle.board)
     tabentert=board.copy()
-    stepX = shapeRef[1] // 9
-    stepY = shapeRef[0] // 9
+
     # print(stepX,stepY)
    # cellLocs = []
-    cellLocs=lookForFigSeed(stepX,stepY)
+
     imagel,tablist=lfp(tabentert)
 
 
 elif readJPG:
-    shapeRef=(680, 600, 3)
-    board,cellLocs=loadimage(imageToLoad)
+    # shapeRef=(680, 600, 3)
+    # board,cellLocs=loadimage(imageToLoad)
+    board =loadimage(imageToLoad)
+
     # shapeRef=(680, 600, 3)
     tabentert=board.copy()
     imagel,tablist=lfp(tabentert)
-    stepX = shapeRef[1] // 9
-    stepY = shapeRef[0] // 9
+    # stepX = shapeRef[1] // 9
+    # stepY = shapeRef[0] // 9
         # (board,cellLocs,tablist) = pickle.load( open( "save.p", "rb" ) )
         # # shapeRef=(631, 600, 3)
         # shapeRef=(680, 600, 3)
@@ -2907,17 +2923,38 @@ elif readJPG:
         # # imagel=lfplist()
 else:
     try:
-        (board,cellLocs,tablist) = pickle.load( open( cwd+"/save.p", "rb" ) )
+        #(board,cellLocs,tablist) = pickle.load( open( cwd+"/save.p", "rb" ) )
+        (board,tablist) = pickle.load( open( cwd+"/save.p", "rb" ) )
+
+        # shapeRef=(680, 600, 3)
+        # stepX = shapeRef[1] // 9
+        # stepY = shapeRef[0] // 9
+        # print(cellLocs)
+        # cellLocs=lookForFigSeed(stepX,stepY)
+        # print(cellLocs)
     except:
-            (board,cellLocs) = pickle.load( open( cwd+"/save.p", "rb" ) )
-            shapeRef=(680, 600, 3)
+        try:
+            # (board,cellLocs) = pickle.load( open( cwd+"/save.p", "rb" ) )
+            board = pickle.load( open( cwd+"/save.p", "rb" ) )
+
+            # shapeRef=(680, 600, 3)
             tabentert=board.copy()
+            imagel,tablist=lfp(tabentert)
+        except:
+            seed=random.randrange(1000)
+            # shapeRef=(596, 600, 3)
+            # shapeRef=(680, 600, 3)
+            puzzle= Sudoku(3, 3,seed=seed).difficulty(0.4)
+            board= convertBoardInv(puzzle.board)
+            tabentert=board.copy()
+
+            # print(stepX,stepY)
+           # cellLocs = []
+
             imagel,tablist=lfp(tabentert)
             
     # shapeRef=(631, 600, 3)
-    shapeRef=(680, 600, 3)
-    stepX = shapeRef[1] // 9
-    stepY = shapeRef[0] // 9
+
   
 
 ArraySelected =np.zeros(shapeRef, dtype=np.uint8)
@@ -2934,7 +2971,7 @@ for i in range(9):
    for j in range(9):
        solvedFTrue[i,j]=solved[i,j]
 
-cellLocsSave =cellLocs
+# cellLocsSave =cellLocs
 
 
 loop(board)
