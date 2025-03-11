@@ -201,6 +201,7 @@ def moinslundo(px,py,num):
 
 
 def moinsl(px,py,num):
+    print("start moinsl")
     global tablist,tabentert
     if tabentert[px,py]==num:
         tabentert[px,py]=0
@@ -404,7 +405,7 @@ def redraw():
         global showPossible,gridpair,tabentertimg,showPossible,image,gridVisu,ArraySelected,gridMenu
         global tabentert,tabresrinit,imagel,valueVisu,visuActive,toggleDou
         global lastpx,lastpy,tabhelp,errormoins,gridColor
-       # print('I redraw')
+        print('I redraw')
         griderror=np.zeros(shapeRef,np.uint8)
         resultSolved,_=solvesudokuNew(tabentert)
         if not (resultSolved) or errormoins:
@@ -510,7 +511,7 @@ def cplus():
     mos=False
     value=-1
     plus=True
-    visu=False
+    #visu=False
     moins=False
     dou=False
     
@@ -525,7 +526,7 @@ def cmoins():
   value=-1
   moins=True
   plus=False
-  visu=False
+  #visu=False
   dou=False
   cv2.rectangle(gridMenu, (400,30), (590,60), (20,30,10), -1)
   #◄cv2.rectangle(gridMenu, (400,27), (550,58), (20,30,10), -1)
@@ -589,6 +590,7 @@ def okwebcam():
     if webcamLaunched:
         webcam.release()
         board=loadimage('cam.jpg')
+        print("from webcam",board)
         cv2.destroyWindow("Capturing")
         cv2.destroyWindow("Captured")
     
@@ -704,6 +706,7 @@ def cchiffre(n):
             value=n
             numsaved= n
             plus=False
+
             # waitforvalue=False
             lastpx=px
             lastpy=py
@@ -746,6 +749,7 @@ def cchiffre(n):
        #  moins=False
          moinsl(px,py,value)
          value = -1
+         moins=False
          redraw()
     if visu:
         # valueVisu=value
@@ -1057,7 +1061,8 @@ def loop(board):
                 cchiffre(value)
       
         elif key==3014656:
-           if mos:
+            print("suppress value")
+            if mos:
                value=3014656
                print ('add to source',value)
            
@@ -1248,7 +1253,7 @@ def loop(board):
            #  plus=False
              if value == 3014656:
                  value = 0
-             boardold=board.copy()
+             #boardold=board.copy()
              board=pluslmos(px,py,value,board)
              value = -1
              resultSolved,solved=solvesudokuNew(board)
@@ -1271,8 +1276,15 @@ def loop(board):
                  imagel,tablist=lfp(tabentert)
                  redraw()
              else:
-                  print("NO SOLUTION")
-                  board=boardold.copy()
+                  print("NO SOLUTION from MOS")
+                  print(board)
+                  tabresrinit=board.copy()
+                  ggdinit=affinit(tabresrinit,(255,255,0))
+                  image=cv2.cvtColor(ggdinit,cv2.COLOR_BGR2RGB)
+                  tabentert=board.copy()
+                  imagel,tablist=lfp(tabentert)
+                  redraw()
+                  #board=boardold.copy()
                    # print(solvedF[i,j])
               
         if webcamV:
